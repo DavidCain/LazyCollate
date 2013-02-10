@@ -47,7 +47,12 @@ class PageFetch(object):
         else:
             return True
 
+
+def get_writeups(label):
+    p = PageFetch(label)
+    return list(p.get_all_writeups())
+
+
 if __name__ == "__main__":
-    p = PageFetch("cs151s13project1")
-    for url in p.get_all_writeups():
+    for url in get_writeups("cs151s13project1"):
         print url

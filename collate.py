@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # David Cain
-# 2013-02-08
+# 2013-02-11
 
 """ A script to automatically collate projects for CS151 students.
 
@@ -12,11 +12,13 @@ import re
 import shutil
 import subprocess
 
+import writeups
+
 
 SEMESTER, YEAR = "s", 13  # s for spring, f for fall
 CS151_MOUNT_POINT = "/mnt/CS151"
 COLLATED_DIR = "/mnt/CS151/Collated/"
-PROJ_REGEX = "^proj(ect)?[_\s]*0*%d$"  # substitute project number
+PROJ_REGEX = "proj(ect)?[_\s]*0*%d$"  # substitute project number
 
 
 class AbsentWriteup(Exception):
@@ -28,6 +30,7 @@ class AbsentProject(Exception):
 
 
 class Project(object):
+    """ Store attributes about a single CS151 project. """
     def __init__(self, proj_num):
         self.proj_regex = re.compile(PROJ_REGEX % proj_num, re.IGNORECASE)
         self.wiki_label = "cs151%s%dproject%d" % (SEMESTER, YEAR, proj_num)
@@ -38,8 +41,11 @@ class Project(object):
 
 
 class Collate(object):
+    """ Collate all students' work for a given project. """
     def __init__(self, proj_num):
         self.project = Project(proj_num)
+        writeup_urls = writeups.get_writeups(self.project.wiki_label)
+        self.writeups_dict = writeups.writeup_by_id(writeup_urls)
         self.collated_proj_dir = os.path.join(COLLATED_DIR,
                                               "Proj%d" % proj_num)
         self.reset_collated_dir()
@@ -51,36 +57,61 @@ class Collate(object):
 
     def collate_projects(self, students):
         for colby_id in students:
-            stu = StudentCollate(colby_id, self.project, self.collated_proj_dir)
+            try:
+                writeup_url = self.writeups_dict[colby_id]
+            except KeyError:
+                writeup_url = None
+
+            stu = StudentCollate(colby_id, self.project, writeup_url,
+                                 self.collated_proj_dir)
             stu.collect()
-            stu.get_writeup(None)
 
 
 class StudentCollate(object):
-    def __init__(self, colby_id, project, collated_out_dir):
+    """ Collate a student's work and writeup into the top-level Collated directory. """
+    def __init__(self, colby_id, project, writeup_url, collated_out_dir):
         self.colby_id = colby_id
         self.project = project
+        self.writeup_url = writeup_url
         self.stu_dir = os.path.join(CS151_MOUNT_POINT, self.colby_id)
         self.private_dir = os.path.join(self.stu_dir, "private")
-        self.collated_dest = os.path.join(collated_out_dir, self.colby_id)
+        self.collated_out_dir = collated_out_dir
 
     def collect(self):
         """ Collect student's code into the collated directory. """
-        if os.path.isdir(self.collated_dest):
-            print "Removing existing directory '%s'" % self.collated_dest
-            shutil.rmtree(self.collated_dest)
-
+        self.warn_msgs = []
+        proj_dir = None
         try:
-            proj_dir = self.get_proj_dir()
+            proj_dir = self._get_proj_dir()
+        except AbsentProject:
+            self.warn_msgs.append("NO_PROJECT")
         except ValueError as e:
             print e.message
             # TODO: resolve interactivity?
             print "Resolve which project directory applies"
             raise
 
-        shutil.copytree(proj_dir, self.collated_dest)
+        collated_dest = self._get_dest_dirname()
+        if self.writeup_url:
+            save_writeup(self.writeup_url, collated_dest)
+        else:
+            self.warn_msgs.append("NO_WRITEUP")
+            collated_dest = self._get_dest_dirname()  # New dirname has error
 
-    def get_proj_dir(self):
+        if proj_dir:
+            shutil.copytree(proj_dir, collated_dest)
+        else:
+            os.makedirs(collated_dest)
+
+
+    def _get_dest_dirname(self):
+        if self.warn_msgs:
+            out_prefix = "AA_" + "-".join(self.warn_msgs) + "_"
+        else:
+            out_prefix = ""
+        return os.path.join(self.collated_out_dir, out_prefix + self.colby_id)
+
+    def _get_proj_dir(self):
         """ Return a directory where code in unambiguously published.
 
         Will try to publish private version if possible.
@@ -93,6 +124,7 @@ class StudentCollate(object):
                 raise AbsentProject("No project found for '%s'." % self.colby_id)
             if len(matching_dirs) == 1:
                 print "No published project for '%s', using private version." % self.colby_id
+                self.warn_msgs.append("PRIVATE_VERSION")
 
         if len(matching_dirs) > 1:
             raise ValueError("Ambiguous which is project: %s" % matching_dirs)
@@ -112,8 +144,15 @@ class StudentCollate(object):
 
         return abs_dirs
 
-    def get_writeup(self, writeup_url):
-        print self.project.wiki_label
-        dest_pdf = os.path.join(self.collated_dest, "writeup.pdf")
-        subprocess.check_call(["wkhtmltopdf", "--quiet", writeup_url, dest_pdf])
-        return dest_pdf
+
+def save_writeup(writeup_url, dest_dir):
+    dest_pdf = os.path.join(dest_dir, "writeup.pdf")
+    #subprocess.check_call(["wkhtmltopdf", "--quiet", writeup_url, dest_pdf])
+    print " ".join(["wkhtmltopdf",  writeup_url, dest_pdf])
+    subprocess.check_call(["wkhtmltopdf",  writeup_url, dest_pdf])
+    return dest_pdf
+
+
+if __name__ == "__main__":
+    project = Project(1)
+    coll = Collate(1)

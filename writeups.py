@@ -1,42 +1,49 @@
 #!/usr/bin/env python
 # David Cain
-# 2013-02-08
+# 2013-02-11
 
 """ A script to fetch all writeups for a project. """
 
 import getpass
 import mechanize
+import os
 
 
 class PageFetch(object):
-    def __init__(self, wiki_label, collator="djcain"):
-        self.login_url = "https://wiki.colby.edu/login.action?os_destination=%2Flabel%2F" + wiki_label
+    def __init__(self, wiki_label, collator="djcain", cookie_jar="cookies.txt"):
+        self.login_url = "https://wiki.colby.edu/login.action"
+        self.start_page = "https://wiki.colby.edu/label/" + wiki_label
         self.collator = raw_input("Username:") if not collator else collator
 
         self.browser = mechanize.Browser()
-        self.login()
+        self.cj = mechanize.MozillaCookieJar()
+        self.browser.set_cookiejar(self.cj)
+        self.login(cookie_jar)
 
-    def login(self):
-        self.browser.open(self.login_url)
+    def login(self, cookie_jar):
+        if cookie_jar and os.path.isfile(cookie_jar):  # Get login from existing cookie
+            self.cj.load(cookie_jar, ignore_discard=True, ignore_expires=True)
+        else:  # Login, save to cookie
+            self.browser.open(self.login_url)
 
-        self.browser.select_form(name="loginform")
-        self.browser["os_username"] = self.collator
-        self.browser["os_password"] = getpass.getpass()
-        results = self.browser.submit()  # TODO: no verification that successful
+            self.browser.select_form(name="loginform")
+            self.browser["os_username"] = self.collator
+            self.browser["os_password"] = getpass.getpass()
+
+            results = self.browser.submit()  # TODO: no verification that successful
+            self.cj.save(cookie_jar, ignore_discard=True, ignore_expires=True)
 
     def get_all_writeups(self):
         """ Starting on a page with writeups, yield all pages until exhausted. """
-        assert self.browser, "Browser already closed, as links exhausted."
+        self.browser.open(self.start_page)
         while True:
             for link in self.browser.links(predicate=self._is_writeup):
                 yield link.absolute_url
             if not self._next_page():
-                self.browser.close()
                 break
 
     def _is_writeup(self, link):
-        # Pretty hackish, but there's little HTML to indicate what's a page and
-        # what's not
+        # hackish, but there's little to indicate what's a page and what's not
         return "display" in link.url and self.collator not in link.url
 
     def _next_page(self):
@@ -53,6 +60,25 @@ def get_writeups(label):
     return list(p.get_all_writeups())
 
 
+def get_colbyid(writeup_url):
+    """ Extract the Colby ID from a writeup URL.
+
+    Example: "srtaylor" from:
+        https://wiki.colby.edu/display/~srtaylor/CS151+Project+1
+    """
+    display_url = writeup_url[writeup_url.find("/display/~") + 10:]
+    return display_url[:display_url.find("/")]
+
+
+def writeup_by_id(writeup_urls):
+    writeups_dict = {}
+    for writeup_url in writeup_urls:
+        author = get_colbyid(writeup_url)
+        writeups_dict[author] = writeup_url
+    return writeups_dict
+
+
 if __name__ == "__main__":
-    for url in get_writeups("cs151s13project1"):
+    p = PageFetch("cs151s13project1")
+    for url in p.get_all_writeups():
         print url

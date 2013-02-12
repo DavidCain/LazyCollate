@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # David Cain
-# 2013-02-11
+# 2013-02-12
 
 """ A script to automatically collate projects for CS151 students.
 
@@ -18,7 +18,7 @@ import writeups
 SEMESTER, YEAR = "s", 13  # s for spring, f for fall
 CS151_MOUNT_POINT = "/mnt/CS151"
 COLLATED_DIR = "/mnt/CS151/Collated/"
-PROJ_REGEX = "proj(ect)?[_\s]*0*%d$"  # substitute project number
+PROJ_REGEX = ".*(lab|proj(ect)?)[_\s]*0*%d$"  # substitute project number
 
 
 class AbsentWriteup(Exception):
@@ -102,7 +102,6 @@ class StudentCollate(object):
             shutil.copytree(proj_dir, collated_dest)
         else:
             os.makedirs(collated_dest)
-
 
     def _get_dest_dirname(self):
         if self.warn_msgs:

@@ -141,18 +141,19 @@ class StudentCollate(object):
         except ProjectWarning as e:
             self.warn(e)
 
-        collated_dest = self._get_dest_dirname()
         if not self.writeup_urls:
             self.warn(AbsentWriteup("Can't find writeup for '%s'" % self.colby_id))
-            collated_dest = self._get_dest_dirname()  # New dirname includes error
-        else:
-            for i, writeup_url in enumerate(self.writeup_urls):
-                save_writeup(writeup_url, collated_dest, i)
+
+        # Dirname should include all proper errors now
+        collated_dest = self._get_dest_dirname()
 
         if proj_dir:
             shutil.copytree(proj_dir, collated_dest)
         else:
-            os.makedirs(collated_dest)
+            os.mkdir(collated_dest)
+
+        for i, writeup_url in enumerate(self.writeup_urls):
+            save_writeup(writeup_url, collated_dest, i)
 
     def _get_dest_dirname(self):
         if self.warn_msgs:

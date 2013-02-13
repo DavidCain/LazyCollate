@@ -7,10 +7,12 @@
 Dependencies: wkhtmltopdf (for automated printing of writeups)
 """
 
+import getpass
 import os
 import re
 import shutil
 import subprocess
+import urllib
 
 import writeups
 
@@ -18,6 +20,12 @@ import writeups
 SEMESTER, YEAR = "s", 13  # s for spring, f for fall
 CS151_MOUNT_POINT = "/mnt/CS151"
 COLLATED_DIR = "/mnt/CS151/Collated/"
+
+# Needs to be read here, because we can't use cookie with wkhtmltopdf/rasterize
+OS_USERNAME = "djcain"
+OS_PASSWORD = getpass.getpass()
+
+PAGE_SIZE = "Letter"
 
 
 def make_proj_regex(proj_num):
@@ -189,10 +197,22 @@ class StudentCollate(object):
 def save_writeup(writeup_url, dest_dir, number=False):
     pdf_name = "writeup%s.pdf" % ("" if not number else number)
     dest_pdf = os.path.join(dest_dir, pdf_name)
-    #subprocess.check_call(["wkhtmltopdf", "--quiet", writeup_url, dest_pdf])
-    print " ".join(["wkhtmltopdf",  writeup_url, dest_pdf])
-    subprocess.check_call(["wkhtmltopdf",  writeup_url, dest_pdf])
-    #p = writeups.PageFetch("cs151s13project1")
+
+    os_destination = writeup_url[writeup_url.find('/display/'):]
+    params = urllib.urlencode({"os_username": OS_USERNAME,
+                               "os_password": OS_PASSWORD,
+                               "os_destination": os_destination})
+    redirect_url = 'https://wiki.colby.edu/login.action?%s' % params
+
+    # Use a login cookie with wkhtmltopdf (fails, not sure why)
+    #subprocess.check_call(["wkhtmltopdf", "--cookie-jar", "cookie.txt",  writeup_url, dest_pdf])
+
+    # Method 2: Use the redirect URL with wkhtmltopdf
+    subprocess.check_call(["wkhtmltopdf", "--quiet",  redirect_url, dest_pdf])
+
+    # Method 3: Use PhantomJS on the redirect URL
+    #subprocess.check_call(["phantomjs", "rasterize.js", redirect_url,  dest_pdf, PAGE_SIZE])
+
     return dest_pdf
 
 

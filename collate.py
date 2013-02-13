@@ -18,7 +18,17 @@ import writeups
 SEMESTER, YEAR = "s", 13  # s for spring, f for fall
 CS151_MOUNT_POINT = "/mnt/CS151"
 COLLATED_DIR = "/mnt/CS151/Collated/"
-PROJ_REGEX = ".*(lab|proj(ect)?)[_\s]*0*%d$"  # substitute project number
+
+
+def make_proj_regex(proj_num):
+    numbers = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six",
+               7: "seven", 8: "eight", 9: "nine", 10: "ten"}
+    try:
+        en_num = numbers[proj_num]
+    except KeyError:
+        en_num = proj_num
+    regex_string = ".*(lab|proj(ect)?)[_\s]*(0*%d|%s)" % (proj_num, en_num)
+    return re.compile(regex_string, re.IGNORECASE)
 
 
 class ProjectWarning(Exception):
@@ -49,7 +59,7 @@ class PrivateProject(ProjectWarning):
 class Project(object):
     """ Store attributes about a single CS151 project. """
     def __init__(self, proj_num):
-        self.proj_regex = re.compile(PROJ_REGEX % proj_num, re.IGNORECASE)
+        self.proj_regex = make_proj_regex(proj_num)
         self.wiki_label = "cs151%s%dproject%d" % (SEMESTER, YEAR, proj_num)
         self.proj_num = proj_num
 

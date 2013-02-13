@@ -108,9 +108,12 @@ class StudentCollate(object):
 
         self.warn_msgs = []
 
-    def warn(self, warning):
+    def warn(self, warning, verbose=False):
+        if verbose:
+            print "Warning for '%s':" % self.colby_id,
         if isinstance(warning, ProjectWarning):
-            #print warning.__doc__
+            if verbose:
+                print warning, "|", warning.__doc__
             warning = warning.label
 
         if warning not in self.warn_msgs:

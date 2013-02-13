@@ -181,3 +181,7 @@ def save_writeup(writeup_url, dest_dir):
 if __name__ == "__main__":
     project = Project(1)
     coll = Collate(1)
+    with open("students.txt") as students_list:
+        students = [line.strip() for line in students_list]
+
+    coll.collate_projects(students)

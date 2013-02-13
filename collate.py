@@ -21,12 +21,29 @@ COLLATED_DIR = "/mnt/CS151/Collated/"
 PROJ_REGEX = ".*(lab|proj(ect)?)[_\s]*0*%d$"  # substitute project number
 
 
-class AbsentWriteup(Exception):
+class ProjectWarning(Exception):
+    """A generic warning about the project."""
     pass
 
 
-class AbsentProject(Exception):
-    pass
+class AbsentWriteup(ProjectWarning):
+    """No writeup was found."""
+    label = "NO_WRITEUP"
+
+
+class AbsentProject(ProjectWarning):
+    """No project was found."""
+    label = "NO_PROJECT"
+
+
+class MultipleProjects(ProjectWarning):
+    """Multiple projects are labeled."""
+    label = "MULTIPLE_PROJS"
+
+
+class PrivateProject(ProjectWarning):
+    """No published project was found, using a version found in 'private'."""
+    label = "PRIVATE_VERSION"
 
 
 class Project(object):
@@ -77,26 +94,35 @@ class StudentCollate(object):
         self.private_dir = os.path.join(self.stu_dir, "private")
         self.collated_out_dir = collated_out_dir
 
+        self.warn_msgs = []
+
+    def warn(self, warning):
+        if isinstance(warning, ProjectWarning):
+            #print warning.__doc__
+            warning = warning.label
+
+        if warning not in self.warn_msgs:
+            self.warn_msgs.append(warning)
+
     def collect(self):
         """ Collect student's code into the collated directory. """
-        self.warn_msgs = []
         proj_dir = None
         try:
             proj_dir = self._get_proj_dir()
-        except AbsentProject:
-            self.warn_msgs.append("NO_PROJECT")
-        except ValueError as e:
+        except MultipleProjects as e:
             print e.message
             # TODO: resolve interactivity?
             print "Resolve which project directory applies"
             raise
+        except ProjectWarning as e:
+            self.warn(e)
 
         collated_dest = self._get_dest_dirname()
         if self.writeup_url:
             save_writeup(self.writeup_url, collated_dest)
         else:
-            self.warn_msgs.append("NO_WRITEUP")
-            collated_dest = self._get_dest_dirname()  # New dirname has error
+            self.warn(AbsentWriteup("Can't find writeup for '%s'" % self.colby_id))
+            collated_dest = self._get_dest_dirname()  # New dirname includes error
 
         if proj_dir:
             shutil.copytree(proj_dir, collated_dest)
@@ -105,7 +131,7 @@ class StudentCollate(object):
 
     def _get_dest_dirname(self):
         if self.warn_msgs:
-            out_prefix = "AA_" + "-".join(self.warn_msgs) + "_"
+            out_prefix = "AA_" + "-".join(sorted(self.warn_msgs)) + "_"
         else:
             out_prefix = ""
         return os.path.join(self.collated_out_dir, out_prefix + self.colby_id)
@@ -118,15 +144,15 @@ class StudentCollate(object):
         # Find all matching directories in top level, then private if need be
         matching_dirs = self._get_matching_dirs(self.stu_dir)
         if not matching_dirs:
+            # Try for a project in the private directory
             matching_dirs = self._get_matching_dirs(self.private_dir)
             if not matching_dirs:
                 raise AbsentProject("No project found for '%s'." % self.colby_id)
-            if len(matching_dirs) == 1:
-                print "No published project for '%s', using private version." % self.colby_id
-                self.warn_msgs.append("PRIVATE_VERSION")
+            elif len(matching_dirs) == 1:
+                self.warn(PrivateProject(self.colby_id))
 
         if len(matching_dirs) > 1:
-            raise ValueError("Ambiguous which is project: %s" % matching_dirs)
+            raise MultipleProjects("Ambiguous which is project: %s" % matching_dirs)
         return matching_dirs[0]
 
         # Return matching directory if found, raise Exceptions if absent

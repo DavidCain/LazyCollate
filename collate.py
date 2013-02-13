@@ -19,6 +19,7 @@ import writeups
 
 SEMESTER, YEAR = "s", 13  # s for spring, f for fall
 CS151_MOUNT_POINT = "/mnt/CS151"
+BACKUP_CS_151 = True
 COLLATED_DIR = "/mnt/CS151/Collated/"
 
 # Needs to be read here, because we can't use cookie with wkhtmltopdf/rasterize
@@ -217,7 +218,12 @@ def save_writeup(writeup_url, dest_dir, number=False):
 
 
 if __name__ == "__main__":
-    project = Project(1)
+    if BACKUP_CS_151:
+        import datetime
+        print "Backing up before doing anything"
+        shutil.copytree("/mnt/CS151", "151_backup_%s" % datetime.datetime.now())
+        print "Backup done"
+
     coll = Collate(1)
     with open("students.txt") as students_list:
         students = [line.strip() for line in students_list]

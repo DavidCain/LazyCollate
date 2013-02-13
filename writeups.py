@@ -2,7 +2,7 @@
 # David Cain
 # 2013-02-11
 
-""" A script to fetch all writeups for a project. """
+""" Fetch all writeups for a project and map writeups to users. """
 
 from collections import defaultdict
 import getpass
@@ -11,7 +11,8 @@ import os
 
 
 class PageFetch(object):
-    def __init__(self, wiki_label, collator="djcain", cookie_jar="cookies.txt"):
+    def __init__(self, wiki_label, collator="djcain", cookie_jar="cookies.txt",
+                 force_login=True):
         self.login_url = "https://wiki.colby.edu/login.action"
         self.start_page = "https://wiki.colby.edu/label/" + wiki_label
         self.collator = raw_input("Username:") if not collator else collator
@@ -19,10 +20,10 @@ class PageFetch(object):
         self.browser = mechanize.Browser()
         self.cj = mechanize.MozillaCookieJar()
         self.browser.set_cookiejar(self.cj)
-        self.login(cookie_jar)
+        self.login(cookie_jar, force_login)
 
-    def login(self, cookie_jar):
-        if cookie_jar and os.path.isfile(cookie_jar):  # Get login from existing cookie
+    def login(self, cookie_jar, force_login=True):
+        if not force_login and cookie_jar and os.path.isfile(cookie_jar):
             self.cj.load(cookie_jar, ignore_discard=True, ignore_expires=True)
         else:  # Login, save to cookie
             self.browser.open(self.login_url)

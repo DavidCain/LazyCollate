@@ -73,12 +73,14 @@ class Collate(object):
         self.project = Project(proj_num)
         writeup_urls = writeups.get_writeups(self.project.wiki_label)
         self.writeups_dict = writeups.writeup_by_id(writeup_urls)
-        self.collated_proj_dir = os.path.join(COLLATED_DIR,
-                                              "Proj%d" % proj_num)
+        self.collated_proj_dir = os.path.join(COLLATED_DIR, "Proj%d" % proj_num)
         self.reset_collated_dir()
 
     def reset_collated_dir(self):
         if os.path.isdir(self.collated_proj_dir):
+            print "About to delete '%s'" % self.collated_proj_dir
+            print "Press Enter to continue, Ctrl+C to abort"
+            raw_input()
             shutil.rmtree(self.collated_proj_dir)
         os.mkdir(self.collated_proj_dir)
 

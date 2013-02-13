@@ -75,21 +75,21 @@ class Collate(object):
     def collate_projects(self, students):
         for colby_id in students:
             try:
-                writeup_url = self.writeups_dict[colby_id]
+                writeup_urls = self.writeups_dict[colby_id]
             except KeyError:
-                writeup_url = None
+                writeup_urls = []
 
-            stu = StudentCollate(colby_id, self.project, writeup_url,
+            stu = StudentCollate(colby_id, self.project, writeup_urls,
                                  self.collated_proj_dir)
             stu.collect()
 
 
 class StudentCollate(object):
     """ Collate a student's work and writeup into the top-level Collated directory. """
-    def __init__(self, colby_id, project, writeup_url, collated_out_dir):
+    def __init__(self, colby_id, project, writeup_urls, collated_out_dir):
         self.colby_id = colby_id
         self.project = project
-        self.writeup_url = writeup_url
+        self.writeup_urls = writeup_urls
         self.stu_dir = os.path.join(CS151_MOUNT_POINT, self.colby_id)
         self.private_dir = os.path.join(self.stu_dir, "private")
         self.collated_out_dir = collated_out_dir
@@ -118,11 +118,12 @@ class StudentCollate(object):
             self.warn(e)
 
         collated_dest = self._get_dest_dirname()
-        if self.writeup_url:
-            save_writeup(self.writeup_url, collated_dest)
-        else:
+        if not self.writeup_urls:
             self.warn(AbsentWriteup("Can't find writeup for '%s'" % self.colby_id))
             collated_dest = self._get_dest_dirname()  # New dirname includes error
+        else:
+            for i, writeup_url in enumerate(self.writeup_urls):
+                save_writeup(writeup_url, collated_dest, i)
 
         if proj_dir:
             shutil.copytree(proj_dir, collated_dest)
@@ -170,11 +171,13 @@ class StudentCollate(object):
         return abs_dirs
 
 
-def save_writeup(writeup_url, dest_dir):
-    dest_pdf = os.path.join(dest_dir, "writeup.pdf")
+def save_writeup(writeup_url, dest_dir, number=False):
+    pdf_name = "writeup%s.pdf" % ("" if not number else number)
+    dest_pdf = os.path.join(dest_dir, pdf_name)
     #subprocess.check_call(["wkhtmltopdf", "--quiet", writeup_url, dest_pdf])
     print " ".join(["wkhtmltopdf",  writeup_url, dest_pdf])
     subprocess.check_call(["wkhtmltopdf",  writeup_url, dest_pdf])
+    #p = writeups.PageFetch("cs151s13project1")
     return dest_pdf
 
 

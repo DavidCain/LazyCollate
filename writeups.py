@@ -4,6 +4,7 @@
 
 """ A script to fetch all writeups for a project. """
 
+from collections import defaultdict
 import getpass
 import mechanize
 import os
@@ -71,11 +72,11 @@ def get_colbyid(writeup_url):
 
 
 def writeup_by_id(writeup_urls):
-    writeups_dict = {}
+    writeups_dict = defaultdict(list)
     for writeup_url in writeup_urls:
         author = get_colbyid(writeup_url)
-        writeups_dict[author] = writeup_url
-    return writeups_dict
+        writeups_dict[author].append(writeup_url)
+    return dict(writeups_dict)
 
 
 if __name__ == "__main__":

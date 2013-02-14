@@ -26,7 +26,7 @@ COLLATED_DIR = "/mnt/CS151/Collated/"
 OS_USERNAME = "djcain"
 OS_PASSWORD = getpass.getpass()
 
-PAGE_SIZE = "Letter"
+PDF_PRINTER = "wkhtmltopdf"  # (or phantomjs)
 
 
 def make_proj_regex(proj_num):
@@ -208,20 +208,22 @@ def save_writeup(writeup_url, dest_dir, number=False):
     pdf_name = "writeup%s.pdf" % ("" if not number else number)
     dest_pdf = os.path.join(dest_dir, pdf_name)
 
+    # Create a URL that logs in, and redirects to the desired page
+    # (simplest way to log in; wkhtmltopdf and rasterize handle it)
     os_destination = writeup_url[writeup_url.find('/display/'):]
     params = urllib.urlencode({"os_username": OS_USERNAME,
                                "os_password": OS_PASSWORD,
                                "os_destination": os_destination})
     redirect_url = 'https://wiki.colby.edu/login.action?%s' % params
 
-    # Use a login cookie with wkhtmltopdf (fails, not sure why)
-    #subprocess.check_call(["wkhtmltopdf", "--cookie-jar", "cookie.txt",  writeup_url, dest_pdf])
-
-    # Method 2: Use the redirect URL with wkhtmltopdf
-    subprocess.check_call(["wkhtmltopdf", "--quiet",  redirect_url, dest_pdf])
-
-    # Method 3: Use PhantomJS on the redirect URL
-    #subprocess.check_call(["phantomjs", "rasterize.js", redirect_url,  dest_pdf, PAGE_SIZE])
+    pdf_printer = PDF_PRINTER.lower()
+    if pdf_printer == "wkhtmltopdf":
+        subprocess.check_call(["wkhtmltopdf", "--quiet",  redirect_url, dest_pdf])
+    elif pdf_printer == "phantomjs":
+        subprocess.check_call(["phantomjs", "rasterize.js", redirect_url,
+                               dest_pdf, "Letter"])
+    else:
+        raise ValueError("Supported PDF printers are wkhtmltopdf or PhantomJS")
 
     return dest_pdf
 

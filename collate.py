@@ -26,6 +26,13 @@ OS_USERNAME = "djcain"
 PDF_PRINTER = "wkhtmltopdf"  # (or phantomjs)
 
 
+def _verbosep(*args):
+    if VERBOSE:
+        for arg in args:
+            print arg,
+        print
+
+
 def make_proj_regex(proj_num):
     numbers = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six",
                7: "seven", 8: "eight", 9: "nine", 10: "ten"}
@@ -116,14 +123,13 @@ class StudentCollate(object):
 
         self.warn_msgs = []
 
-    def warn(self, warning, verbose=False):
+    def warn(self, warning):
         """Log a warning about the project; will ultimately go in directory name. """
-        if verbose:
-            print "Warning for '%s':" % self.colby_id,
+        warn_text = "Warning for %s:" % self.colby_id
         if isinstance(warning, ProjectWarning):
-            if verbose:
-                print warning, "|", warning.__doc__
+            warn_text += " %s | %s" % (warning, warning.__doc__)
             warning = warning.label
+        _verbosep(warn_text)
 
         if warning not in self.warn_msgs:
             self.warn_msgs.append(warning)
@@ -141,7 +147,7 @@ class StudentCollate(object):
             self.warn(e)
 
         if not self.writeup_urls:
-            self.warn(AbsentWriteup("Can't find writeup for '%s'" % self.colby_id))
+            self.warn(AbsentWriteup("No writeup labeled '%s'" % self.project.wiki_label))
 
         # Dirname should include all proper errors now
         collated_dest = self._get_dest_dirname()
@@ -173,7 +179,7 @@ class StudentCollate(object):
             # Try for a project in the private directory
             matching_dirs = self._get_matching_dirs(self.private_dir)
             if not matching_dirs:
-                raise AbsentProject("No project found for '%s'." % self.colby_id)
+                raise AbsentProject("No project matches regex.")
             elif len(matching_dirs) == 1:
                 self.warn(PrivateProject(self.colby_id))
 
@@ -216,7 +222,8 @@ def save_writeup(writeup_url, dest_dir, number=False):
 
     pdf_printer = PDF_PRINTER.lower()
     if pdf_printer == "wkhtmltopdf":
-        subprocess.check_call(["wkhtmltopdf", "--quiet",  redirect_url, dest_pdf])
+        cmd = ["wkhtmltopdf", "--quiet",  redirect_url, dest_pdf]
+        subprocess.check_call(cmd + ["--quiet"] if VERBOSE else cmd)
     elif pdf_printer == "phantomjs":
         subprocess.check_call(["phantomjs", "rasterize.js", redirect_url,
                                dest_pdf, "Letter"])
@@ -253,7 +260,10 @@ if __name__ == "__main__":
                         help='The number of the CS151 project')
     parser.add_argument('students_file',
                         help="A text file with a Colby ID per line")
+    parser.add_argument('-v', '--verbose', action="store_true",
+                        help="Print extra information")
 
     args = parser.parse_args()
     OS_PASSWORD = getpass.getpass("Colby password: ")
+    VERBOSE = args.verbose
     collate(args.proj_num, args.students_file)

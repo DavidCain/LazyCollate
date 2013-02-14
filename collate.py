@@ -64,11 +64,6 @@ class MultipleProjects(ProjectWarning):
     label = "MULTIPLE_PROJS"
 
 
-class PrivateProject(ProjectWarning):
-    """No published project was found, using a version found in 'private'."""
-    label = "PRIVATE_VERSION"
-
-
 class Project(object):
     """ Store attributes about a single CS151 project. """
     def __init__(self, proj_num):
@@ -181,7 +176,8 @@ class StudentCollate(object):
             if not matching_dirs:
                 raise AbsentProject("No project matches regex.")
             elif len(matching_dirs) == 1:
-                self.warn(PrivateProject(self.colby_id))
+                _verbosep("No top-level project found for '%s', "
+                          "using directory in 'private'" % self.colby_id)
 
         if len(matching_dirs) > 1:
             raise MultipleProjects("Ambiguous which is project: %s" % matching_dirs)

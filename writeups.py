@@ -6,6 +6,7 @@
 
 from collections import defaultdict
 import getpass
+
 import mechanize
 
 

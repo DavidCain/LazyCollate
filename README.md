@@ -1,25 +1,27 @@
 # LazyCollate
 
 Each semester, some 70 students enroll in Colby College's CS 151. A student
-worker is tasked with collating each week's projects into a sensible directory
-structure, including each student's writeup rendered as a PDF.
+worker (that'd be me) is tasked with collating each week's projects into a
+sensible directory structure, including each student's writeup rendered as a
+PDF.
 
 I'm lazy, so I wrote a program to automate this procedure.
 
-Working off a project number and a list of students, LazyCollate locates the
-students' code on a network share and renders Confluence pages either
-[QtWebKit][qtwebkit] or [PhantomJS][phantomjs]. File renaming, content
-warnings, and web scraping are all done automatically.
+Working off a project number and a list of students, LazyCollate locates
+the students' code on a network share and renders Confluence pages using
+either [QtWebKit][qtwebkit] or [PhantomJS][phantomjs]. File renaming,
+content warnings, and web scraping are all done automatically.
 
 # Installation and setup
-No extra Python packages are necessary: LazyCollate uses the Python standard
-library (Python 2.7).
 
-However, ensure that either [`wkhtmltopdf`][wkhtmltopdf] or
-[`phantomjs`][phantomjs] are installed to drive PDF generation. Both are
-available on GitHub and in most package managers. LazyCollate was tested on
-wkhtmltopdf 0.9.9 and PhantomJS 1.9.0 (statically compiled on
-2012-02-12 from commit [04368c6af][phantom-commit]).
+## Dependencies
+Other versions will likely work, but LazyCollate is tested with:
+
+- Python 2.7
+- [`mechanize`][mechanize] v 2.5
+- [`wkhtmltopdf`][wkhtmltopdf] 0.9.9
+- [PhantomJS][phantomjs] 1.9.0 (statically compiled on 2012-02-12 from
+  [04368c6af][phantom-commit])
 
 ## Configuration
 1. Mount the CS 151 network share to `/mnt/CS151` (or elsewhere, but change
@@ -39,8 +41,8 @@ Then, to collate project 2, call:
 
     $ python collate.py 2 students.txt
 
-If the specified arguments are correct, LazyCollate will ask for your password.
-Then sit back while it does the rest!
+If the specified arguments are correct, LazyCollate will ask once for your
+password. Then, sit back while it does the rest!
 
 ## Other options
 
@@ -52,6 +54,7 @@ To see all available options:
     $ python collate.py --help
 
 
+[mechanize]: http://pypi.python.org/pypi/mechanize/
 [phantomjs]: https://github.com/ariya/phantomjs
 [phantom-commit]: https://github.com/ariya/phantomjs/commit/04368c6af8110280c8d7e2cedfe710065c672e4a
 [qtwebkit]: http://qt-project.org/wiki/QtWebKit

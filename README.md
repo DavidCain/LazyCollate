@@ -13,13 +13,15 @@ warnings, and web scraping are all done automatically.
 
 # Installation and setup
 No extra Python packages are necessary: LazyCollate uses the Python standard
-library.
+library (Python 2.7).
 
 However, ensure that either [`wkhtmltopdf`][wkhtmltopdf] or
 [`phantomjs`][phantomjs] are installed to drive PDF generation. Both are
-available on GitHub and in most package managers.
+available on GitHub and in most package managers. LazyCollate was tested on
+wkhtmltopdf 0.9.9 and PhantomJS 1.9.0 (statically compiled on
+2012-02-12 from commit [04368c6af][phantom-commit]).
 
-## Setup
+## Configuration
 1. Mount the CS 151 network share to `/mnt/CS151` (or elsewhere, but change
    `CS151_MOUNT_POINT` in `collate.py` if you do so).
 
@@ -51,5 +53,6 @@ To see all available options:
 
 
 [phantomjs]: https://github.com/ariya/phantomjs
+[phantom-commit]: https://github.com/ariya/phantomjs/commit/04368c6af8110280c8d7e2cedfe710065c672e4a
 [qtwebkit]: http://qt-project.org/wiki/QtWebKit
 [wkhtmltopdf]: https://github.com/antialize/wkhtmltopdf

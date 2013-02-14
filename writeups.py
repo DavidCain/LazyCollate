@@ -23,9 +23,10 @@ class PageFetch(object):
         self.login(cookie_jar, force_login)
 
     def login(self, cookie_jar, force_login=True):
+        """ Log into Confluence, save the cookie. """
         if not force_login and cookie_jar and os.path.isfile(cookie_jar):
             self.cj.load(cookie_jar, ignore_discard=True, ignore_expires=True)
-        else:  # Login, save to cookie
+        else:
             self.browser.open(self.login_url)
 
             self.browser.select_form(name="loginform")
@@ -73,6 +74,7 @@ def get_colbyid(writeup_url):
 
 
 def writeup_by_id(writeup_urls):
+    """ Return dict where keys are Colby ID's, each value a list of pages. """
     writeups_dict = defaultdict(list)
     for writeup_url in writeup_urls:
         author = get_colbyid(writeup_url)

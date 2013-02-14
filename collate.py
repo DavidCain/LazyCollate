@@ -4,7 +4,7 @@
 
 """ A script to automatically collate projects for CS151 students.
 
-Dependencies: wkhtmltopdf (for automated printing of writeups)
+Dependencies: wkhtmltopdf or phantomjs (for automated printing of writeups)
 """
 
 import getpass
@@ -86,6 +86,7 @@ class Collate(object):
         self.reset_collated_dir()
 
     def reset_collated_dir(self):
+        """ Create a fresh directory to store the collated projects. """
         if os.path.isdir(self.collated_proj_dir):
             print "About to delete '%s'" % self.collated_proj_dir
             print "Press Enter to continue, Ctrl+C to abort"
@@ -118,6 +119,7 @@ class StudentCollate(object):
         self.warn_msgs = []
 
     def warn(self, warning, verbose=False):
+        """Log a warning about the project; will ultimately go in directory name. """
         if verbose:
             print "Warning for '%s':" % self.colby_id,
         if isinstance(warning, ProjectWarning):
@@ -135,9 +137,8 @@ class StudentCollate(object):
             proj_dir = self._get_proj_dir()
         except MultipleProjects as e:
             print e.message
-            # TODO: resolve interactivity?
             print "Resolve which project directory applies"
-            raise
+            raise  # Manually resolve, run again (TODO: interactively choose?)
         except ProjectWarning as e:
             self.warn(e)
 
@@ -156,6 +157,7 @@ class StudentCollate(object):
             save_writeup(writeup_url, collated_dest, i)
 
     def _get_dest_dirname(self):
+        """ Return the labeled directory name (identifies any errors). """
         if self.warn_msgs:
             out_prefix = "AA_" + "-".join(sorted(self.warn_msgs)) + "_"
         else:
@@ -165,7 +167,7 @@ class StudentCollate(object):
     def _get_proj_dir(self):
         """ Return a directory where code in unambiguously published.
 
-        Will try to publish private version if possible.
+        First checks the top directory, then the private version.
         """
         # Find all matching directories in top level, then private if need be
         matching_dirs = self._get_matching_dirs(self.stu_dir)
@@ -197,6 +199,12 @@ class StudentCollate(object):
 
 
 def save_writeup(writeup_url, dest_dir, number=False):
+    """ Save the writeup to its destination directory.
+
+    :param writeup_url: URL to a writeup ("http://.../display/~colby_id/...")
+    :param dest_dir: Directory to save the PDF to
+    :param number: An optional number indicating it's the nth writeup file
+    """
     pdf_name = "writeup%s.pdf" % ("" if not number else number)
     dest_pdf = os.path.join(dest_dir, pdf_name)
 
@@ -222,8 +230,9 @@ if __name__ == "__main__":
     if BACKUP_CS_151:
         import datetime
         print "Backing up before doing anything"
-        shutil.copytree("/mnt/CS151", "151_backup_%s" % datetime.datetime.now())
-        print "Backup done"
+        backup_name = "151_backup_%s" % datetime.datetime.now()
+        shutil.copytree("/mnt/CS151", backup_name)
+        print "Backup done (saved to '%s')" % backup_name
 
     coll = Collate(1)
     with open("students.txt") as students_list:

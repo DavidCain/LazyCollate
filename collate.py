@@ -18,7 +18,6 @@ import urllib
 import writeups
 
 
-SEMESTER, YEAR = "s", 13  # s for spring, f for fall
 CS151_MOUNT_POINT = "/mnt/CS151"
 COLLATED_DIR = "/mnt/CS151/Collated/"
 OS_USERNAME = "djcain"
@@ -67,8 +66,14 @@ class Project(object):
     """ Store attributes about a single CS151 project. """
     def __init__(self, proj_num):
         self.proj_regex = make_proj_regex(proj_num)
-        self.wiki_label = "cs151%s%dproject%d" % (SEMESTER, YEAR, proj_num)
+        self.set_wiki_label(proj_num)
         self.proj_num = proj_num
+
+    def set_wiki_label(self, proj_num):
+        now = datetime.datetime.now()
+        semester = "s" if now.month < 7 else "f"  # spring/fall semester
+        year = now.year % 100  # (e.g. 13)
+        self.wiki_label = "cs151%s%dproject%d" % (semester, year, proj_num)
 
     def match(self, dirname):
         return self.proj_regex.match(os.path.split(dirname)[1])

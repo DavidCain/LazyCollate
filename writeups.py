@@ -7,34 +7,35 @@
 from collections import defaultdict
 import getpass
 import mechanize
-import os
 
 
 class PageFetch(object):
     def __init__(self, wiki_label, collator="djcain", cookie_jar="cookies.txt",
-                 force_login=True):
+                 password=None, force_login=True):
         self.login_url = "https://wiki.colby.edu/login.action"
         self.start_page = "https://wiki.colby.edu/label/" + wiki_label
-        self.collator = raw_input("Username:") if not collator else collator
+        self.collator = raw_input("Username: ") if not collator else collator
 
         self.browser = mechanize.Browser()
         self.cj = mechanize.MozillaCookieJar()
         self.browser.set_cookiejar(self.cj)
-        self.login(cookie_jar, force_login)
+        self.login(cookie_jar, password, force_login)
 
-    def login(self, cookie_jar, force_login=True):
+    def login(self, cookie_jar, password=None, force_login=True):
         """ Log into Confluence, save the cookie. """
-        if not force_login and cookie_jar and os.path.isfile(cookie_jar):
-            self.cj.load(cookie_jar, ignore_discard=True, ignore_expires=True)
-        else:
+        if password or force_login:
             self.browser.open(self.login_url)
 
             self.browser.select_form(name="loginform")
             self.browser["os_username"] = self.collator
-            self.browser["os_password"] = getpass.getpass()
+            if not password:
+                password = getpass.getpass("Colby password: ")
+            self.browser["os_password"] = password
 
             results = self.browser.submit()  # TODO: no verification that successful
             self.cj.save(cookie_jar, ignore_discard=True, ignore_expires=True)
+        else:  # Load a cookie from file
+            self.cj.load(cookie_jar, ignore_discard=True, ignore_expires=True)
 
     def get_all_writeups(self):
         """ Starting on a page with writeups, yield all pages until exhausted. """
@@ -56,11 +57,6 @@ class PageFetch(object):
             return False
         else:
             return True
-
-
-def get_writeups(label):
-    p = PageFetch(label)
-    return list(p.get_all_writeups())
 
 
 def get_colbyid(writeup_url):

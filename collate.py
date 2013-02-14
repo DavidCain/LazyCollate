@@ -22,11 +22,7 @@ SEMESTER, YEAR = "s", 13  # s for spring, f for fall
 CS151_MOUNT_POINT = "/mnt/CS151"
 BACKUP_CS_151 = True
 COLLATED_DIR = "/mnt/CS151/Collated/"
-
-# Needs to be read here, because we can't use cookie with wkhtmltopdf/rasterize
 OS_USERNAME = "djcain"
-OS_PASSWORD = getpass.getpass()
-
 PDF_PRINTER = "wkhtmltopdf"  # (or phantomjs)
 
 
@@ -81,7 +77,8 @@ class Collate(object):
     """ Collate all students' work for a given project. """
     def __init__(self, proj_num):
         self.project = Project(proj_num)
-        writeup_urls = writeups.get_writeups(self.project.wiki_label)
+        p = writeups.PageFetch(self.project.wiki_label, password=OS_PASSWORD)
+        writeup_urls = list(p.get_all_writeups())
         self.writeups_dict = writeups.writeup_by_id(writeup_urls)
         self.collated_proj_dir = os.path.join(COLLATED_DIR, "Proj%d" % proj_num)
         self.reset_collated_dir()
@@ -258,4 +255,5 @@ if __name__ == "__main__":
                         help="A text file with a Colby ID per line")
 
     args = parser.parse_args()
+    OS_PASSWORD = getpass.getpass("Colby password: ")
     collate(args.proj_num, args.students_file)

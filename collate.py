@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 # David Cain
-# 2013-02-12
+# 2013-02-13
 
 """ A script to automatically collate projects for CS151 students.
 
 Dependencies: wkhtmltopdf or phantomjs (for automated printing of writeups)
 """
 
+import datetime
 import getpass
 import os
 import re
@@ -228,16 +229,33 @@ def save_writeup(writeup_url, dest_dir, number=False):
     return dest_pdf
 
 
-if __name__ == "__main__":
+def collate(proj_num, students_fn):
+    """ Run collation on a single CS project.
+
+    :param proj_num: An integer denoting the project number
+    :param students_fn: A file with a student ID on each line
+    """
     if BACKUP_CS_151:
-        import datetime
         print "Backing up before doing anything"
         backup_name = "151_backup_%s" % datetime.datetime.now()
         shutil.copytree("/mnt/CS151", backup_name)
         print "Backup done (saved to '%s')" % backup_name
 
-    coll = Collate(1)
-    with open("students.txt") as students_list:
+    coll = Collate(proj_num)
+    with open(students_fn) as students_list:
         students = [line.strip() for line in students_list]
 
     coll.collate_projects(students)
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Collate a project')
+    parser.add_argument('proj_num', type=int,
+                        help='The number of the CS151 project')
+    parser.add_argument('students_file',
+                        help="A text file with a Colby ID per line")
+
+    args = parser.parse_args()
+    collate(args.proj_num, args.students_file)

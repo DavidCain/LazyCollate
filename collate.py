@@ -20,7 +20,6 @@ import writeups
 
 SEMESTER, YEAR = "s", 13  # s for spring, f for fall
 CS151_MOUNT_POINT = "/mnt/CS151"
-BACKUP_CS_151 = True
 COLLATED_DIR = "/mnt/CS151/Collated/"
 OS_USERNAME = "djcain"
 PDF_PRINTER = "wkhtmltopdf"  # (or phantomjs)
@@ -258,8 +257,12 @@ if __name__ == "__main__":
                         help="A text file with a Colby ID per line")
     parser.add_argument('-v', '--verbose', action="store_true",
                         help="Print extra information")
+    parser.add_argument('--skip-backup', action="store_false",
+                        help="Skip backing up the CS151 directory")
 
     args = parser.parse_args()
     OS_PASSWORD = getpass.getpass("Colby password: ")
     VERBOSE = args.verbose
+    BACKUP_CS_151 = args.skip_backup
+
     collate(args.proj_num, args.students_file)

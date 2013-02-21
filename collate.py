@@ -1,6 +1,7 @@
 #!/usr/bin/env python
+
 # David Cain
-# 2013-02-13
+# 2013-02-20
 
 """ A script to automatically collate projects for CS151 students.
 
@@ -172,34 +173,40 @@ class StudentCollate(object):
 
         First checks the top directory, then the private version.
         """
-        # Find all matching directories in top level, then private if need be
         matching_dirs = self._get_matching_dirs(self.stu_dir)
         if not matching_dirs:
-            # Try for a project in the private directory
-            matching_dirs = self._get_matching_dirs(self.private_dir)
-            if not matching_dirs:
-                raise AbsentProject("No project matches regex.")
-            elif len(matching_dirs) == 1:
-                _verbosep("No top-level project found for '%s', "
-                          "using directory in 'private'" % self.colby_id)
-
-        if len(matching_dirs) > 1:
+            raise AbsentProject("No project matches regex.")
+        elif len(matching_dirs) > 1:
             raise MultipleProjects("Ambiguous which is project: %s" % matching_dirs)
-        return matching_dirs[0]
-
-        # Return matching directory if found, raise Exceptions if absent
+        else:
+            proj_dir = matching_dirs[0]
+            if os.path.dirname(proj_dir) != self.stu_dir:
+                _verbosep("No top-level project found for '%s', "
+                            "using '%s'" % (self.colby_id, proj_dir))
+            return proj_dir
 
     def _get_matching_dirs(self, search_dir):
-        """ Search for a project in the top level of the given directory. """
-        # Obtain all matching directories (hopefully, just one matches)
-        init_dir = os.getcwd()
-        os.chdir(search_dir)
-        all_dirs = [path for path in os.listdir(search_dir) if os.path.isdir(path)]
-        matching_dirs = [d for d in all_dirs if self.project.match(d)]
-        abs_dirs = map(os.path.abspath, matching_dirs)
-        os.chdir(init_dir)
+        """ Return absolute paths to directories that likely contain the project.
 
-        return abs_dirs
+        At the first top-down directory to contain one or more matching
+        directories, it returns all such matching directories. If no levels
+        contain a matching directory, an empty list is returned.
+
+        With the below directories, ['/foo/proj2', '/foo/project_2'] is returned:
+
+            /foo
+                proj2/
+                project_2/
+                    proj_2_again/
+                    lab_2/
+        """
+        for (dirpath, dirnames, _) in os.walk(search_dir):
+            cur_dirpaths = [os.path.join(dirpath, name) for name in dirnames]
+            matching_dirs = [d for d in cur_dirpaths if self.project.match(d)]
+            if matching_dirs:
+                return map(os.path.abspath, matching_dirs)
+        else:
+            return []
 
 
 def save_writeup(writeup_url, dest_dir, number=False):

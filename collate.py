@@ -84,7 +84,8 @@ class Collate(object):
     """ Collate all students' work for a given project. """
     def __init__(self, proj_num):
         self.project = Project(proj_num)
-        p = writeups.PageFetch(self.project.wiki_label, password=OS_PASSWORD)
+        p = writeups.PageFetch(self.project.wiki_label,
+                               collator=OS_USERNAME, password=OS_PASSWORD)
         writeup_urls = list(p.get_all_writeups())
         self.writeups_dict = writeups.writeup_by_id(writeup_urls)
         self.collated_proj_dir = os.path.join(COLLATED_DIR, "Proj%d" % proj_num)

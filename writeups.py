@@ -11,11 +11,11 @@ import mechanize
 
 
 class PageFetch(object):
-    def __init__(self, wiki_label, collator="djcain", cookie_jar="cookies.txt",
+    def __init__(self, wiki_label, collator=None, cookie_jar="cookies.txt",
                  password=None, force_login=True):
         self.login_url = "https://wiki.colby.edu/login.action"
         self.start_page = "https://wiki.colby.edu/label/" + wiki_label
-        self.collator = raw_input("Username: ") if not collator else collator
+        self.collator = raw_input("Colby ID: ") if not collator else collator
 
         self.browser = mechanize.Browser()
         self.cj = mechanize.MozillaCookieJar()

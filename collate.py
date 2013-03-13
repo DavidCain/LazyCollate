@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # David Cain
-# 2013-02-20
+# 2013-03-20
 
 """ A script to automatically collate projects for CS151 students.
 
@@ -10,26 +10,44 @@ Dependencies: wkhtmltopdf or phantomjs (for automated printing of writeups)
 
 import datetime
 import getpass
+import logging
+import logging.handlers
 import os
 import re
 import shutil
 import subprocess
+import sys
 import urllib
 
 import writeups
 
 
+# Global variables that are meant to be customized
+# The rest of this file should be able to remain unmodified
+# ----------------------------------------
 CS151_MOUNT_POINT = "/mnt/CS151"
 COLLATED_DIR = "/mnt/CS151/Collated/"
 OS_USERNAME = "djcain"
 PDF_PRINTER = "wkhtmltopdf"  # (or phantomjs)
+# ----------------------------------------
 
 
-def _verbosep(*args):
-    if VERBOSE:
-        for arg in args:
-            print arg,
-        print
+log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
+
+# Log all messages to file
+descriptive = logging.Formatter('%(asctime)s -  %(levelname)s - %(message)s')
+master_handler = logging.handlers.RotatingFileHandler("collation.log",
+                                                      maxBytes=500 * 1024,
+                                                      backupCount=10)
+master_handler.setFormatter(descriptive)
+master_handler.setLevel(logging.DEBUG)
+log.addHandler(master_handler)
+
+# Print info messages to stdout
+stdout_info = logging.StreamHandler(sys.stdout)
+stdout_info.setLevel(logging.INFO)
+log.addHandler(stdout_info)
 
 
 def make_proj_regex(proj_num):
@@ -98,6 +116,7 @@ class Collate(object):
             print "Press Enter to continue, Ctrl+C to abort"
             raw_input()
             shutil.rmtree(self.collated_proj_dir)
+            log.debug("Removed existing dir '%s'", self.collated_proj_dir)
         os.mkdir(self.collated_proj_dir)
 
     def collate_projects(self, students):
@@ -129,11 +148,11 @@ class StudentCollate(object):
         warn_text = "Warning for %s:" % self.colby_id
         if isinstance(warning, ProjectWarning):
             warn_text += " %s | %s" % (warning, warning.__doc__)
-            warning = warning.label
-        _verbosep(warn_text)
+            warning_label = warning.label
+        log.warn(warn_text)
 
-        if warning not in self.warn_msgs:
-            self.warn_msgs.append(warning)
+        if warning_label not in self.warn_msgs:
+            self.warn_msgs.append(warning_label)
 
     def collect(self):
         """ Collect student's code into the collated directory. """
@@ -141,8 +160,8 @@ class StudentCollate(object):
         try:
             proj_dir = self._get_proj_dir()
         except MultipleProjects as e:
-            print e.message
-            print "Resolve which project directory applies"
+            log.warn(e.message)
+            log.error("Manually resolve which project directory applies")
             raise  # Manually resolve, run again (TODO: interactively choose?)
         except ProjectWarning as e:
             self.warn(e)
@@ -182,8 +201,8 @@ class StudentCollate(object):
         else:
             proj_dir = matching_dirs[0]
             if os.path.dirname(proj_dir) != self.stu_dir:
-                _verbosep("No top-level project found for '%s', "
-                            "using '%s'" % (self.colby_id, proj_dir))
+                log.debug("No top-level project found for '%s', "
+                          "using '%s'", self.colby_id, proj_dir)
             return proj_dir
 
     def _get_matching_dirs(self, search_dir):
@@ -248,10 +267,10 @@ def collate(proj_num, students_fn):
     :param students_fn: A file with a student ID on each line
     """
     if BACKUP_CS_151:
-        print "Backing up before doing anything"
+        log.info("Backing up before doing anything")
         backup_name = "151_backup_%s" % datetime.datetime.now()
         shutil.copytree("/mnt/CS151", backup_name)
-        print "Backup done (saved to '%s')" % backup_name
+        log.info("Backup completed")
 
     coll = Collate(proj_num)
     with open(students_fn) as students_list:
@@ -276,6 +295,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     OS_PASSWORD = getpass.getpass("Colby password: ")
     VERBOSE = args.verbose
+    if VERBOSE:
+        stdout_info.setLevel(logging.DEBUG)
+
     BACKUP_CS_151 = args.skip_backup
 
     collate(args.proj_num, args.students_file)

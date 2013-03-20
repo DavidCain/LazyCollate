@@ -273,7 +273,7 @@ def collate(proj_num, students_fn):
         log.info("Backing up before doing anything")
         backup_name = "151_backup_%s" % datetime.datetime.now()
         log.info("Copying '%s' to '%s'", CS151_MOUNT_POINT, backup_name)
-        shutil.copytree("/mnt/CS151", backup_name)
+        shutil.copytree(CS151_MOUNT_POINT, backup_name)
         log.info("Backup completed")
 
     coll = Collate(proj_num)

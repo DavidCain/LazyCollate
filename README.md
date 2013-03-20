@@ -21,14 +21,14 @@ Other versions will likely work, but LazyCollate is tested with:
 - [`mechanize`][mechanize] v 2.5
 - [`wkhtmltopdf`][wkhtmltopdf] 0.9.9
 - [PhantomJS][phantomjs] 1.9.0 (statically compiled on 2012-02-12 from
-  [04368c6af][phantom-commit])
+  [`04368c6af`][phantom-commit])
 
 ## Configuration
 1. Mount the CS 151 network share to `/mnt/CS151` (or elsewhere, but change
    `CS151_MOUNT_POINT` in `collate.py` if you do so).
 
 2. If you're not me and/or unable to steal my password, you'll probably want to
-   set `OS_USERNAME` to your Colby ID.
+   set `OS_USERNAME` in `collate.py` to your Colby ID.
 
 ## Instructions
 
@@ -41,17 +41,34 @@ Then, to collate project 2, call:
 
     $ python collate.py 2 students.txt
 
-If the specified arguments are correct, LazyCollate will ask once for your
-password. Then, sit back while it does the rest!
+LazyCollate will ask for your password and log in for you. Then, sit back while
+it does the rest!
+
+### Logging
+
+LazyCollate writes out to the comprehensive `collation.log`. The `--verbose`
+flag will ensure that all messages permeate to standard output in addition to
+this log file.
 
 ## Other options
-
-The `--verbose` flag will print human-readable warnings and error messages, as
-well as some information from the PDF-rendering toolkit.
 
 To see all available options:
 
     $ python collate.py --help
+
+## Maintenance
+
+This section is developed at future maintainers of LazyCollate.
+
+LazyCollate is designed to work with Atlassian Confluence 3.5.13's login
+system. If failed login error messages change, or if the HTML login form changes
+name or field names, `writeups.py` will need to be modified accordingly.
+
+Cookie-based logins with Mechanize don't work currently. The active workaround
+is to just `POST` the username and password with a redirect for the desired
+page (such as in `save_writeup()` in `collate.py`). See `cookie_login()` in
+`writeups.py` for where cookies should work.
+
 
 
 [mechanize]: http://pypi.python.org/pypi/mechanize/

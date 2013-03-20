@@ -5,6 +5,8 @@
 
 """ A script to automatically collate projects for CS151 students.
 
+See the accompanying README.md for instructions.
+
 Dependencies: wkhtmltopdf or phantomjs (for automated printing of writeups)
 """
 
@@ -50,17 +52,6 @@ stdout_info.setLevel(logging.INFO)
 log.addHandler(stdout_info)
 
 
-def make_proj_regex(proj_num):
-    numbers = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six",
-               7: "seven", 8: "eight", 9: "nine", 10: "ten"}
-    try:
-        en_num = numbers[proj_num]
-    except KeyError:
-        en_num = proj_num
-    regex_string = ".*(lab|proj(ect)?)[_\s]*(0*%d|%s)" % (proj_num, en_num)
-    return re.compile(regex_string, re.IGNORECASE)
-
-
 class ProjectWarning(Exception):
     """A generic warning about the project."""
     pass
@@ -102,9 +93,9 @@ class Collate(object):
     """ Collate all students' work for a given project. """
     def __init__(self, proj_num):
         self.project = Project(proj_num)
-        p = writeups.PageFetch(self.project.wiki_label,
-                               collator=OS_USERNAME, password=OS_PASSWORD)
-        writeup_urls = list(p.get_all_writeups())
+        fetch = writeups.PageFetch(self.project.wiki_label,
+                                   collator=OS_USERNAME, password=OS_PASSWORD)
+        writeup_urls = list(fetch.get_all_writeups())
         self.writeups_dict = writeups.writeup_by_id(writeup_urls)
         self.collated_proj_dir = os.path.join(COLLATED_DIR, "Proj%d" % proj_num)
         self.reset_collated_dir()
@@ -229,6 +220,18 @@ class StudentCollate(object):
             return []
 
 
+def make_proj_regex(proj_num):
+    """ Return a regex that permissively matches possible project dirnames. """
+    numbers = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six",
+               7: "seven", 8: "eight", 9: "nine", 10: "ten"}
+    try:
+        en_num = numbers[proj_num]
+    except KeyError:
+        en_num = proj_num
+    regex_string = ".*(lab|proj(ect)?)[_\s]*(0*%d|%s)" % (proj_num, en_num)
+    return re.compile(regex_string, re.IGNORECASE)
+
+
 def save_writeup(writeup_url, dest_dir, number=False):
     """ Save the writeup to its destination directory.
 
@@ -269,6 +272,7 @@ def collate(proj_num, students_fn):
     if BACKUP_CS_151:
         log.info("Backing up before doing anything")
         backup_name = "151_backup_%s" % datetime.datetime.now()
+        log.info("Copying '%s' to '%s'", CS151_MOUNT_POINT, backup_name)
         shutil.copytree("/mnt/CS151", backup_name)
         log.info("Backup completed")
 

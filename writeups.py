@@ -60,13 +60,14 @@ class PageFetch(object):
             return True
 
 
-def get_colbyid(writeup_url):
+def extract_colbyid(writeup_url):
     """ Extract the Colby ID from a writeup URL.
 
     Example: "srtaylor" from:
         https://wiki.colby.edu/display/~srtaylor/CS151+Project+1
     """
-    display_url = writeup_url[writeup_url.find("/display/~") + 10:]
+    id_prefix = "/display/~"  # The string that should precede the Colby ID
+    display_url = writeup_url[writeup_url.find(id_prefix) + len(id_prefix):]
     return display_url[:display_url.find("/")]
 
 
@@ -74,7 +75,7 @@ def writeup_by_id(writeup_urls):
     """ Return dict where keys are Colby ID's, each value a list of pages. """
     writeups_dict = defaultdict(list)
     for writeup_url in writeup_urls:
-        author = get_colbyid(writeup_url)
+        author = extract_colbyid(writeup_url)
         writeups_dict[author].append(writeup_url)
     return dict(writeups_dict)
 

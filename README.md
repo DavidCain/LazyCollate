@@ -15,14 +15,15 @@ content warnings, and web scraping are all done automatically.
 # Installation and setup
 
 ## Dependencies
-Other versions will likely work, but LazyCollate is tested with:
 
-- [BeautifulSoup][beautiful_soup] 4
 - Python 2.7
-- [`mechanize`][mechanize] 2.5
-- [`wkhtmltopdf`][wkhtmltopdf] 0.9.9
-- [PhantomJS][phantomjs] 1.9.0 (statically compiled on 2012-02-12 from
-  [`04368c6af`][phantom-commit])
+- [`mechanize`][mechanize] (tested on 2.5)
+- [`wkhtmltopdf`][wkhtmltopdf] (tested on 0.9.9)
+    - [PhantomJS][phantomjs] can optionally be used in place of `wkhtmltopdf`
+    (tested on version 1.9.0, statically compiled on 2013-02-12 from
+    [`04368c6af`][phantom-commit])
+- [BeautifulSoup][beautiful_soup] (version 3 or 4 okay)
+
 
 ## Configuration
 1. Mount the CS 151 network share to `/mnt/CS151` (or elsewhere, but change

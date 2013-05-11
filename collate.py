@@ -31,7 +31,7 @@ from img_collect import ImageSaver
 CS151_MOUNT_POINT = "/mnt/CS151"
 COLLATED_DIR = "/mnt/CS151/Collated/"
 IMAGES_DIR = "/mnt/CS151/Images/"
-OS_USERNAME = "djcain"
+OS_USERNAME = None  # Collator's Colby ID (for easier use)
 PDF_PRINTER = "wkhtmltopdf"  # (or phantomjs)
 # ----------------------------------------
 
@@ -323,6 +323,8 @@ if __name__ == "__main__":
                         help="Skip backing up the CS151 directory")
 
     args = parser.parse_args()
+    if not OS_USERNAME:
+        OS_USERNAME = raw_input("Colby username: ")
     OS_PASSWORD = getpass.getpass("Colby password: ")
     VERBOSE = args.verbose
     if VERBOSE:

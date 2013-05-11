@@ -22,6 +22,7 @@ import sys
 import urllib
 
 import writeups
+from img_collect import ImageSaver
 
 
 # Global variables that are meant to be customized
@@ -29,6 +30,7 @@ import writeups
 # ----------------------------------------
 CS151_MOUNT_POINT = "/mnt/CS151"
 COLLATED_DIR = "/mnt/CS151/Collated/"
+IMAGES_DIR = "/mnt/CS151/Images/"
 OS_USERNAME = "djcain"
 PDF_PRINTER = "wkhtmltopdf"  # (or phantomjs)
 # ----------------------------------------
@@ -93,22 +95,31 @@ class Collate(object):
     """ Collate all students' work for a given project. """
     def __init__(self, proj_num):
         self.project = Project(proj_num)
-        fetch = writeups.PageFetch(self.project.wiki_label,
-                                   collator=OS_USERNAME, password=OS_PASSWORD)
+        login_info = {"collator": OS_USERNAME, "password": OS_PASSWORD}
+
+        fetch = writeups.PageFetch(self.project.wiki_label, **login_info)
         writeup_urls = list(fetch.get_all_writeups())
         self.writeups_dict = writeups.writeup_by_id(writeup_urls)
-        self.collated_proj_dir = os.path.join(COLLATED_DIR, "Proj%d" % proj_num)
-        self.reset_collated_dir()
 
-    def reset_collated_dir(self):
-        """ Create a fresh directory to store the collated projects. """
-        if os.path.isdir(self.collated_proj_dir):
-            print "About to delete '%s'" % self.collated_proj_dir
+        self.collated_proj_dir = self.make_dest_dir(COLLATED_DIR, proj_num)
+        image_dir = self.make_dest_dir(IMAGES_DIR, proj_num)
+        self.image_saver = ImageSaver(image_dir, **login_info)
+
+    def make_dest_dir(self, dir_root, proj_num):
+        """ Create a fresh directory to store results of collation run. """
+        dir_path = os.path.join(dir_root, "Proj%d" % proj_num)
+        self._reset_dir(dir_path)
+        return dir_path
+
+    def _reset_dir(self, dir_path):
+        """ Create the directory, erasing contents if it exists. """
+        if os.path.isdir(dir_path):
+            print "About to delete '%s'" % dir_path
             print "Press Enter to continue, Ctrl+C to abort"
             raw_input()
-            shutil.rmtree(self.collated_proj_dir)
-            log.debug("Removed existing dir '%s'", self.collated_proj_dir)
-        os.mkdir(self.collated_proj_dir)
+            shutil.rmtree(dir_path)
+            log.debug("Removed existing dir '%s'", dir_path)
+        os.mkdir(dir_path)
 
     def collate_projects(self, students):
         for colby_id in students:
@@ -120,6 +131,19 @@ class Collate(object):
             stu = StudentCollate(colby_id, self.project, writeup_urls,
                                  self.collated_proj_dir)
             stu.collect()
+
+    def save_all_images(self, students):
+        log.info("Saving all wiki images for all students with wiki pages.")
+        for colby_id in students:
+            try:
+                writeup_urls = self.writeups_dict[colby_id]
+            except KeyError:
+                continue  # No writeups to extract images from
+
+            for writeup_url in writeup_urls:
+                self.image_saver.save_images(writeup_url, prefix=colby_id + "_")
+                log.debug("All images downloaded for %s", colby_id)
+        log.info("Image retrieval completed.")
 
 
 class StudentCollate(object):
@@ -162,7 +186,6 @@ class StudentCollate(object):
 
         # Dirname should include all proper errors now
         collated_dest = self._get_dest_dirname()
-
         if proj_dir:
             shutil.copytree(proj_dir, collated_dest)
         else:
@@ -244,6 +267,8 @@ def save_writeup(writeup_url, dest_dir, number=False):
 
     # Create a URL that logs in, and redirects to the desired page
     # (simplest way to log in; wkhtmltopdf and rasterize handle it)
+    # NOTE: Ideally, we should be able to use the cookie that
+    # mechanize maintains, but I couldn't get it working
     os_destination = writeup_url[writeup_url.find('/display/'):]
     params = urllib.urlencode({"os_username": OS_USERNAME,
                                "os_password": OS_PASSWORD,
@@ -280,6 +305,7 @@ def collate(proj_num, students_fn):
     with open(students_fn) as students_list:
         students = [line.strip() for line in students_list]
 
+    coll.save_all_images(students)
     coll.collate_projects(students)
 
 

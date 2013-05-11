@@ -17,8 +17,9 @@ content warnings, and web scraping are all done automatically.
 ## Dependencies
 Other versions will likely work, but LazyCollate is tested with:
 
+- [BeautifulSoup][beautiful_soup] 4
 - Python 2.7
-- [`mechanize`][mechanize] v 2.5
+- [`mechanize`][mechanize] 2.5
 - [`wkhtmltopdf`][wkhtmltopdf] 0.9.9
 - [PhantomJS][phantomjs] 1.9.0 (statically compiled on 2012-02-12 from
   [`04368c6af`][phantom-commit])
@@ -76,3 +77,4 @@ page (such as in `save_writeup()` in `collate.py`). See `cookie_login()` in
 [phantom-commit]: https://github.com/ariya/phantomjs/commit/04368c6af8110280c8d7e2cedfe710065c672e4a
 [qtwebkit]: http://qt-project.org/wiki/QtWebKit
 [wkhtmltopdf]: https://github.com/antialize/wkhtmltopdf
+[beautiful_soup]: http://www.crummy.com/software/BeautifulSoup/

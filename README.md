@@ -1,9 +1,8 @@
 # LazyCollate
 
 Each semester, some 70 students enroll in Colby College's CS 151. A student
-worker (that'd be me) is tasked with collating each week's projects into a
-sensible directory structure, including each student's writeup rendered as a
-PDF.
+worker is tasked with collating each week's projects into a sensible directory
+structure, including each student's writeup rendered as a PDF.
 
 I'm lazy, so I wrote a program to automate this procedure.
 
@@ -16,6 +15,11 @@ content warnings, and web scraping are all done automatically.
 
 ## Dependencies
 
+LazyCollate is tested on a GNU/Linux system, but should be cross-platform.
+
+The versions within your operating system's package manager will most likely be fine.
+
+### Core dependencies
 - Python 2.7
 - [`mechanize`][mechanize] (tested on 2.5)
 - [`wkhtmltopdf`][wkhtmltopdf] (tested on 0.9.9)
@@ -29,8 +33,7 @@ content warnings, and web scraping are all done automatically.
 1. Mount the CS 151 network share to `/mnt/CS151` (or elsewhere, but change
    `CS151_MOUNT_POINT` in `collate.py` if you do so).
 
-2. If you're not me and/or unable to steal my password, you'll probably want to
-   set `OS_USERNAME` in `collate.py` to your Colby ID.
+2. Optionally change any of the global variables within `collate.py`.
 
 ## Instructions
 
@@ -60,13 +63,13 @@ To see all available options:
 
 ## Maintenance
 
-This section is developed at future maintainers of LazyCollate.
+This section is aimed at future maintainers of LazyCollate.
 
 LazyCollate is designed to work with Atlassian Confluence 3.5.13's login
 system. If failed login error messages change, or if the HTML login form changes
 name or field names, `writeups.py` will need to be modified accordingly.
 
-Cookie-based logins with Mechanize don't work currently. The active workaround
+Cookie-based logins with `wkhtmltopdf` don't work currently. The active workaround
 is to just `POST` the username and password with a redirect for the desired
 page (such as in `save_writeup()` in `collate.py`). See `cookie_login()` in
 `writeups.py` for where cookies should work.

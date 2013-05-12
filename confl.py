@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 # David Cain
-# 2013-03-20
+# 2013-05-12
 
-""" Access the confluence Wiki system, saving the login cookie. """
+""" Access the Confluence wiki system, saving the login cookie. """
 
 import getpass
 

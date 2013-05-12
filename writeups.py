@@ -1,15 +1,20 @@
 #!/usr/bin/env python
 
 # David Cain
-# 2013-03-20
+# 2013-05-12
 
 """ Fetch all writeups for a project and map writeups to users. """
 
 from collections import defaultdict
+import re
 
 import mechanize
 
 import confl
+
+
+# First group should be the Colby ID (extracted from a display URL)
+USER_REGEX = re.compile(".colby.edu/display/~([a-z]+)/")
 
 
 class PageFetch(confl.AccessConfluence):
@@ -45,9 +50,10 @@ def extract_colbyid(writeup_url):
     Example: "srtaylor" from:
         https://wiki.colby.edu/display/~srtaylor/CS151+Project+1
     """
-    id_prefix = "/display/~"  # The string that should precede the Colby ID
-    display_url = writeup_url[writeup_url.find(id_prefix) + len(id_prefix):]
-    return display_url[:display_url.find("/")]
+    try:
+        return USER_REGEX.search(writeup_url).group(1)
+    except AttributeError:
+        raise ValueError("Cannot extract Colby ID from %s" % writeup_url)
 
 
 def writeup_by_id(writeup_urls):

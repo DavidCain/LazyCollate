@@ -244,12 +244,12 @@ class StudentCollate(object):
 def make_proj_regex(proj_num):
     """ Return a regex that permissively matches possible project dirnames. """
     numbers = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six",
-               7: "seven", 8: "eight", 9: "nine", 10: "ten"}
+               7: "seven", 8: "eight", 9: "nine", 10: "ten", 11: "eleven"}
     try:
         en_num = numbers[proj_num]
     except KeyError:
         en_num = proj_num
-    regex_string = ".*(lab|proj(ect)?)[_\s]*(0*%d|%s)" % (proj_num, en_num)
+    regex_string = ".*(lab|proj(ect)?)[-_\s]*(0*%d|%s)" % (proj_num, en_num)
     return re.compile(regex_string, re.IGNORECASE)
 
 

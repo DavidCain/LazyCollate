@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 
 # David Cain
-# 2013-03-20
+# 2013-05-12
 
-""" A script to automatically collate projects for CS151 students.
+""" Automatically collate projects for CS151 students.
 
 See the accompanying README.md for instructions.
-
-Dependencies: wkhtmltopdf or phantomjs (for automated printing of writeups)
 """
 
 import datetime
@@ -142,7 +140,7 @@ class Collate(object):
 
             for writeup_url in writeup_urls:
                 self.image_saver.save_images(writeup_url, prefix=colby_id + "_")
-                log.debug("All images downloaded for %s", colby_id)
+            log.debug("All images downloaded for %s", colby_id)
         log.info("Image retrieval completed.")
 
 
@@ -159,7 +157,7 @@ class StudentCollate(object):
         self.warn_msgs = []
 
     def warn(self, warning):
-        """Log a warning about the project; will ultimately go in directory name. """
+        """ Log a warning about the project; will ultimately go in dirname. """
         warn_text = "Warning for %s:" % self.colby_id
         if isinstance(warning, ProjectWarning):
             warn_text += " %s | %s" % (warning, warning.__doc__)

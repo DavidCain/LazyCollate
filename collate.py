@@ -317,8 +317,8 @@ if __name__ == "__main__":
                         help="A text file with a Colby ID per line")
     parser.add_argument('-v', '--verbose', action="store_true",
                         help="Print extra information")
-    parser.add_argument('--skip-backup', action="store_false",
-                        help="Skip backing up the CS151 directory")
+    parser.add_argument('--backup', action="store_true",
+                        help="Backup %s before collation" % CS151_MOUNT_POINT)
 
     args = parser.parse_args()
     if not OS_USERNAME:
@@ -328,6 +328,6 @@ if __name__ == "__main__":
     if VERBOSE:
         stdout_info.setLevel(logging.DEBUG)
 
-    BACKUP_CS_151 = args.skip_backup
+    BACKUP_CS_151 = args.backup
 
     collate(args.proj_num, args.students_file)

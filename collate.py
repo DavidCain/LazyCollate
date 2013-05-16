@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # David Cain
-# 2013-05-12
+# 2013-05-16
 
 """ Automatically collate projects for CS151 students.
 
@@ -273,15 +273,17 @@ def save_writeup(writeup_url, dest_dir, number=False):
                                "os_destination": os_destination})
     redirect_url = 'https://wiki.colby.edu/login.action?%s' % params
 
-    pdf_printer = PDF_PRINTER.lower()
-    if pdf_printer == "wkhtmltopdf":
-        cmd = ["wkhtmltopdf", "--quiet",  redirect_url, dest_pdf]
-        subprocess.check_call(cmd + ["--quiet"] if VERBOSE else cmd)
-    elif pdf_printer == "phantomjs":
-        subprocess.check_call(["phantomjs", "rasterize.js", redirect_url,
+    if "wkhtmltopdf" in PDF_PRINTER.lower():
+        cmd = [PDF_PRINTER, redirect_url, dest_pdf]
+        subprocess.check_call(cmd + ["--quiet"] if not VERBOSE else cmd)
+    elif "phantomjs" in PDF_PRINTER.lower():
+        subprocess.check_call([PDF_PRINTER, "rasterize.js", redirect_url,
                                dest_pdf, "Letter"])
     else:
-        raise ValueError("Supported PDF printers are wkhtmltopdf or PhantomJS")
+        raise ValueError("No valid PDF printer detected in %s.\n"
+                         "Supported printers are wkhtmltopdf or PhantomJS\n"
+                         "(is 'phantomjs'/'wkhtmltopdf' not in the path? .\n"
+                         % PDF_PRINTER)
 
     return dest_pdf
 

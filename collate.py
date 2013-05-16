@@ -198,6 +198,13 @@ class StudentCollate(object):
             out_prefix = "AA_" + "-".join(sorted(self.warn_msgs)) + "_"
         else:
             out_prefix = ""
+
+        # Check that we haven't previously used a different directory name
+        if hasattr(self, "_old_prefix") and out_prefix != self._old_prefix:
+            log.warning("Previously used a different directory for %s",
+                        self.colby_id, )
+        self._old_prefix = out_prefix  # Save for checking in case called again
+
         return os.path.join(self.collated_out_dir, out_prefix + self.colby_id)
 
     def _get_proj_dir(self):

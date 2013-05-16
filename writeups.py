@@ -60,8 +60,12 @@ def writeup_by_id(writeup_urls):
     """ Return dict where keys are Colby ID's, each value a list of pages. """
     writeups_dict = defaultdict(list)
     for writeup_url in writeup_urls:
-        author = extract_colbyid(writeup_url)
-        writeups_dict[author].append(writeup_url)
+        try:
+            author = extract_colbyid(writeup_url)
+        except ValueError as e:
+            print e.message, "(omitting writeup from list)."
+        else:
+            writeups_dict[author].append(writeup_url)
     return dict(writeups_dict)
 
 

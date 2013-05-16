@@ -185,7 +185,13 @@ class StudentCollate(object):
         # Dirname should include all proper errors now
         collated_dest = self._get_dest_dirname()
         if proj_dir:
-            shutil.copytree(proj_dir, collated_dest)
+            try:
+                shutil.copytree(proj_dir, collated_dest)
+            except:  # issues copying from one filesystem to another on OS X
+                if os.name == "posix" or os.name == "mac":
+                    subprocess.check_call(["cp", "-r", proj_dir, collated_dest])
+                else:
+                    raise
         else:
             os.mkdir(collated_dest)
 

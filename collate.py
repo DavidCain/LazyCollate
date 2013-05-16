@@ -155,6 +155,32 @@ class StudentCollate(object):
         self.collated_out_dir = collated_out_dir
 
         self.warn_msgs = set()
+        self.proj_dir = self._get_proj_dir()
+
+        if not self.writeup_urls:
+            self.warn(AbsentWriteup("No writeup labeled '%s'" % self.project.wiki_label))
+
+    def collect(self):
+        """ Collect the student's code and save the writeup. """
+        self._copy_code()
+        for i, writeup_url in enumerate(self.writeup_urls):
+            save_writeup(writeup_url, self.collated_dest, i)
+
+    def _copy_code(self):
+        """ Copy student's code into the collated directory. """
+        collated_dest = self.collated_dest
+
+        if self.proj_dir:
+            try:
+                shutil.copytree(self.proj_dir, collated_dest)
+            except:  # there can be issues copying between filesystems
+                if os.name == "posix" or os.name == "mac":
+                    subprocess.check_call(["cp", "-r", self.proj_dir,
+                                           collated_dest])
+                else:
+                    raise
+        else:
+            os.mkdir(collated_dest)
 
     def warn(self, warning):
         """ Log a warning about the project; will ultimately go in dirname. """
@@ -164,48 +190,31 @@ class StudentCollate(object):
             self.warn_msgs.add(warning.label)
         log.warn(warn_text)
 
-
-    def collect(self):
-        """ Collect student's code into the collated directory. """
-        proj_dir = None
-        try:
-            proj_dir = self._get_proj_dir()
-        except MultipleProjects as e:
-            log.warn(e.message)
-            log.error("Manually resolve which project directory applies")
-            raise  # Manually resolve, run again (TODO: interactively choose?)
-        except ProjectWarning as e:
-            self.warn(e)
-
-        if not self.writeup_urls:
-            self.warn(AbsentWriteup("No writeup labeled '%s'" % self.project.wiki_label))
-
-        # Dirname should include all proper errors now
-        collated_dest = self._get_dest_dirname()
-        if proj_dir:
-            try:
-                shutil.copytree(proj_dir, collated_dest)
-            except:  # issues copying from one filesystem to another on OS X
-                if os.name == "posix" or os.name == "mac":
-                    subprocess.check_call(["cp", "-r", proj_dir, collated_dest])
-                else:
-                    raise
-        else:
-            os.mkdir(collated_dest)
-
-        for i, writeup_url in enumerate(self.writeup_urls):
-            save_writeup(writeup_url, collated_dest, i)
-
-    def _get_dest_dirname(self):
-        """ Return the labeled directory name (identifies any errors). """
+    @property
+    def collated_dest(self):
+        """ Labeled directory name (has Colby ID, identifies any errors). """
         if self.warn_msgs:
+            # Sorting needed to maintain determinism with respect to warnings
             out_prefix = "AA_" + "-".join(sorted(self.warn_msgs)) + "_"
         else:
             out_prefix = ""
         return os.path.join(self.collated_out_dir, out_prefix + self.colby_id)
 
     def _get_proj_dir(self):
-        """ Return a directory where code in unambiguously published.
+        """ Return directory in which project resides (None if not found). """
+        try:
+            project_dir = self._find_proj_dir()
+        except MultipleProjects as e:
+            log.warn(e.message)
+            log.error("Manually resolve which project directory applies")
+            raise  # Manually resolve, run again (TODO: interactively choose?)
+        except ProjectWarning as e:
+            self.warn(e)
+        else:
+            return project_dir
+
+    def _find_proj_dir(self):
+        """ Return a directory where code is unambiguously published.
 
         First checks the top directory, then the private version.
         """

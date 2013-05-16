@@ -40,7 +40,10 @@ class ImageSaver(confl.AccessConfluence):
         """ Download the image, prependeng an optional prefix to the filename. """
         parse_result = urlparse.urlparse(image_url)
 
-        dest_fn = prefix + os.path.split(parse_result.path)[1]
+        # Make a path on the disk from the Colby ID and image URL
+        # Replace special characters that break retrieve() (non-exhaustive)
+        orig_fn = os.path.split(parse_result.path)[1]
+        dest_fn = prefix + re.sub("[*?|<>]", "-", orig_fn)
         dest_path = os.path.join(self.dest_dir, dest_fn)
 
         self.browser.retrieve(image_url, dest_path)

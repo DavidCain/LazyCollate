@@ -63,8 +63,6 @@ To see all available options:
 
 ## Maintenance
 
-This section is aimed at future maintainers of LazyCollate.
-
 LazyCollate is designed to work with Atlassian Confluence 3.5.13's login
 system. If failed login error messages change, or if the HTML login form changes
 name or field names, `writeups.py` will need to be modified accordingly.
@@ -73,6 +71,13 @@ Cookie-based logins with `wkhtmltopdf` don't work currently. The active workarou
 is to just `POST` the username and password with a redirect for the desired
 page (such as in `save_writeup()` in `collate.py`). See `cookie_login()` in
 `writeups.py` for where cookies should work.
+
+
+## Known bugs
+
+`wkhtmltopdf` has an issue on OS X with printing Conflence URL's with a `POST`
+(passing a recommended flag might help, but it's far easier to just use
+`phantomjs` instead).
 
 
 

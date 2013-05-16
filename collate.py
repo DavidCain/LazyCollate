@@ -154,18 +154,16 @@ class StudentCollate(object):
         self.private_dir = os.path.join(self.stu_dir, "private")
         self.collated_out_dir = collated_out_dir
 
-        self.warn_msgs = []
+        self.warn_msgs = set()
 
     def warn(self, warning):
         """ Log a warning about the project; will ultimately go in dirname. """
         warn_text = "Warning for %s:" % self.colby_id
         if isinstance(warning, ProjectWarning):
             warn_text += " %s | %s" % (warning, warning.__doc__)
-            warning_label = warning.label
+            self.warn_msgs.add(warning.label)
         log.warn(warn_text)
 
-        if warning_label not in self.warn_msgs:
-            self.warn_msgs.append(warning_label)
 
     def collect(self):
         """ Collect student's code into the collated directory. """

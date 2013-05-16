@@ -14,18 +14,18 @@ try:
 except ImportError:
     from BeautifulSoup import BeautifulSoup  # Syntax is bs3-compatible
 
-import crawl
+import confl
 
 
 # Match URLs for user-uploaded images (used to ignore other images)
 USER_IMG_REGEX = re.compile("^/download/attachments/.*$")
 
 
-class ImageSaver(crawl.WikiCrawler):
+class ImageSaver(confl.AccessConfluence):
     """ Save images from a wiki writeup to a local directory. """
     def __init__(self, dest_dir, *args, **kwargs):
         self.dest_dir = dest_dir
-        crawl.WikiCrawler.__init__(self, *args, **kwargs)
+        confl.AccessConfluence.__init__(self, *args, **kwargs)
 
     def save_images(self, writeup_url, prefix=""):
         """ Save all user-uploaded images on a wiki page to the directory. """

@@ -112,11 +112,11 @@ class Collate(object):
     def _reset_dir(self, dir_path):
         """ Create the directory, erasing contents if it exists. """
         if os.path.isdir(dir_path):
-            print "About to delete '%s'" % dir_path
+            print "About to delete %r" % dir_path
             print "Press Enter to continue, Ctrl+C to abort"
             raw_input()
             shutil.rmtree(dir_path)
-            log.debug("Removed existing dir '%s'", dir_path)
+            log.debug("Removed existing dir %r", dir_path)
         os.mkdir(dir_path)
 
     def collate_projects(self, students):
@@ -154,7 +154,7 @@ class StudentCollate(object):
         self.proj_dir = self._get_proj_dir()
 
         if not self.writeup_urls:
-            self.warn(AbsentWriteup("No writeup labeled '%s'" % self.project.wiki_label))
+            self.warn(AbsentWriteup("No writeup labeled %r" % self.project.wiki_label))
 
     def collect(self):
         """ Collect the student's code and save the writeup. """
@@ -229,8 +229,8 @@ class StudentCollate(object):
         else:
             proj_dir = matching_dirs[0]
             if os.path.dirname(proj_dir) != self.stu_dir:
-                log.debug("No top-level project found for '%s', "
-                          "using '%s'", self.colby_id, proj_dir)
+                log.debug("No top-level project found for %r, "
+                          "using %r", self.colby_id, proj_dir)
             return proj_dir
 
     def _get_matching_dirs(self, search_dir):
@@ -310,7 +310,7 @@ def collate(proj_num, students_fn):
     if BACKUP_CS_151:
         log.info("Backing up before doing anything")
         backup_name = "151_backup_%s" % datetime.datetime.now()
-        log.info("Copying '%s' to '%s'", CS151_MOUNT_POINT, backup_name)
+        log.info("Copying %r to %r", CS151_MOUNT_POINT, backup_name)
         shutil.copytree(CS151_MOUNT_POINT, backup_name)
         log.info("Backup completed")
 

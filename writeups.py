@@ -24,7 +24,12 @@ class PageFetch(confl.AccessConfluence):
 
     def get_all_writeups(self):
         """ Starting on a page with writeups, yield all pages until exhausted. """
-        self.browser.open(self.start_page)
+        try:
+            self.browser.open(self.start_page)
+        except mechanize.HTTPError as e:
+            print "Error accessing %r (does label exist?)" % self.start_page
+            raise
+
         while True:
             for link in self.browser.links(predicate=self._is_writeup):
                 yield link.absolute_url

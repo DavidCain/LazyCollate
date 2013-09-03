@@ -14,12 +14,12 @@ import confl
 
 
 # First group should be the Colby ID (extracted from a display URL)
-USER_REGEX = re.compile(".colby.edu/display/~([a-z]+)/")
+USER_REGEX = re.compile(r'.colby.edu/display/~([a-z]+)/')
 
 
 class PageFetch(confl.AccessConfluence):
     def __init__(self, wiki_label, *args, **kwargs):
-        self.start_page = "https://wiki.colby.edu/label/" + wiki_label
+        self.start_page = 'https://wiki.colby.edu/label/' + wiki_label
         confl.AccessConfluence.__init__(self, *args, **kwargs)
 
     def get_all_writeups(self):
@@ -33,11 +33,11 @@ class PageFetch(confl.AccessConfluence):
 
     def _is_writeup(self, link):
         # hackish, but there's little to indicate what's a page and what's not
-        return "display" in link.url and self.collator not in link.url
+        return 'display' in link.url and self.collator not in link.url
 
     def _next_page(self):
         try:
-            self.browser.follow_link(text_regex="Next >>")
+            self.browser.follow_link(text_regex='Next >>')
         except mechanize.LinkNotFoundError:
             return False
         else:
@@ -47,7 +47,7 @@ class PageFetch(confl.AccessConfluence):
 def extract_colbyid(writeup_url):
     """ Extract the Colby ID from a writeup URL.
 
-    Example: "srtaylor" from:
+    Example: 'srtaylor' from:
         https://wiki.colby.edu/display/~srtaylor/CS151+Project+1
     """
     try:
@@ -69,7 +69,7 @@ def writeup_by_id(writeup_urls):
     return dict(writeups_dict)
 
 
-if __name__ == "__main__":
-    p = PageFetch("cs151s13project1")
+if __name__ == '__main__':
+    p = PageFetch('cs151s13project1')
     for url in p.get_all_writeups():
         print url

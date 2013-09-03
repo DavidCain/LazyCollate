@@ -10,15 +10,15 @@ import mechanize
 # Strings used by the Confluence system in the HTML for failed login attempts.
 # These apply to Confluence 3.5.13 (might need to be updated in later versions).
 # If they don't match Confluence errors, failed logins will pass silently
-FAILURE_MSG = "Please try again"
-CAPTCHA_MSG = "validate your login"
+FAILURE_MSG = 'Please try again'
+CAPTCHA_MSG = 'validate your login'
 
 
 class AccessConfluence(object):
     """ Log into the system, maintain login information in cookies. """
-    def __init__(self, collator=None, cookie_jar="cookies.txt",
+    def __init__(self, collator=None, cookie_jar='cookies.txt',
                  password=None, force_login=True):
-        self.login_url = "https://wiki.colby.edu/login.action"
+        self.login_url = 'https://wiki.colby.edu/login.action'
         self.collator = raw_input("Colby ID: ") if not collator else collator
 
         self.browser = mechanize.Browser()
@@ -36,7 +36,7 @@ class AccessConfluence(object):
             self.cj.load(cookie_jar, ignore_discard=True, ignore_expires=True)
 
     def login(self, password=None):
-        """Repeat the login process until successfully logged in. """
+        """ Repeat the login process until successfully logged in. """
         if not password:
             password = getpass.getpass("Colby password: ")
         while True:
@@ -55,8 +55,8 @@ class AccessConfluence(object):
         """ Submit login and password to Confluence, return page contents. """
         self.browser.open(self.login_url)
 
-        self.browser.select_form(name="loginform")
-        self.browser["os_username"] = self.collator
-        self.browser["os_password"] = password
+        self.browser.select_form(name='loginform')
+        self.browser['os_username'] = self.collator
+        self.browser['os_password'] = password
 
         return self.browser.submit()

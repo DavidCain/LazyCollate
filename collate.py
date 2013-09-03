@@ -26,11 +26,11 @@ from img_collect import ImageSaver
 # Global variables that are meant to be customized
 # The rest of this file should be able to remain unmodified
 # ----------------------------------------
-CS151_MOUNT_POINT = "/mnt/CS151"
-COLLATED_DIR = "/mnt/CS151/Collated/"
-IMAGES_DIR = "/mnt/CS151/Images/"
+CS151_MOUNT_POINT = '/mnt/CS151'
+COLLATED_DIR = '/mnt/CS151/Collated/'
+IMAGES_DIR = '/mnt/CS151/Images/'
 OS_USERNAME = None  # Collator's Colby ID (for easier use)
-PDF_PRINTER = "wkhtmltopdf"  # (or phantomjs)
+PDF_PRINTER = 'wkhtmltopdf'  # (or phantomjs)
 # ----------------------------------------
 
 
@@ -39,7 +39,7 @@ log.setLevel(logging.DEBUG)
 
 # Log all messages to file
 descriptive = logging.Formatter('%(asctime)s -  %(levelname)s - %(message)s')
-master_handler = logging.handlers.RotatingFileHandler("collation.log",
+master_handler = logging.handlers.RotatingFileHandler('collation.log',
                                                       maxBytes=500 * 1024,
                                                       backupCount=10)
 master_handler.setFormatter(descriptive)
@@ -59,17 +59,17 @@ class ProjectWarning(Exception):
 
 class AbsentWriteup(ProjectWarning):
     """No writeup was found."""
-    label = "NO_WRITEUP"
+    label = 'NO_WRITEUP'
 
 
 class AbsentProject(ProjectWarning):
     """No project was found."""
-    label = "NO_PROJECT"
+    label = 'NO_PROJECT'
 
 
 class MultipleProjects(ProjectWarning):
     """Multiple projects are labeled."""
-    label = "MULTIPLE_PROJS"
+    label = 'MULTIPLE_PROJS'
 
 
 class Project(object):
@@ -81,9 +81,9 @@ class Project(object):
 
     def set_wiki_label(self, proj_num):
         now = datetime.datetime.now()
-        semester = "s" if now.month < 7 else "f"  # spring/fall semester
+        semester = 's' if now.month < 7 else 'f'  # spring/fall semester
         year = now.year % 100  # (e.g. 13)
-        self.wiki_label = "cs151%s%dproject%d" % (semester, year, proj_num)
+        self.wiki_label = 'cs151%s%dproject%d' % (semester, year, proj_num)
 
     def match(self, dirname):
         return self.proj_regex.match(os.path.split(dirname)[1])
@@ -93,7 +93,7 @@ class Collate(object):
     """ Collate all students' work for a given project. """
     def __init__(self, proj_num):
         self.project = Project(proj_num)
-        login_info = {"collator": OS_USERNAME, "password": OS_PASSWORD}
+        login_info = {'collator': OS_USERNAME, 'password': OS_PASSWORD}
 
         fetch = writeups.PageFetch(self.project.wiki_label, **login_info)
         writeup_urls = list(fetch.get_all_writeups())
@@ -105,7 +105,7 @@ class Collate(object):
 
     def make_dest_dir(self, dir_root, proj_num):
         """ Create a fresh directory to store results of collation run. """
-        dir_path = os.path.join(dir_root, "Proj%d" % proj_num)
+        dir_path = os.path.join(dir_root, 'Proj%d' % proj_num)
         self._reset_dir(dir_path)
         return dir_path
 
@@ -135,7 +135,7 @@ class Collate(object):
                 continue  # No writeups to extract images from
 
             for writeup_url in writeup_urls:
-                self.image_saver.save_images(writeup_url, prefix=colby_id + "_")
+                self.image_saver.save_images(writeup_url, prefix=colby_id + '_')
             log.debug("All images downloaded for %s", colby_id)
         log.info("Image retrieval completed.")
 
@@ -147,7 +147,7 @@ class StudentCollate(object):
         self.project = project
         self.writeup_urls = writeup_urls
         self.stu_dir = os.path.join(CS151_MOUNT_POINT, self.colby_id)
-        self.private_dir = os.path.join(self.stu_dir, "private")
+        self.private_dir = os.path.join(self.stu_dir, 'private')
         self.collated_out_dir = collated_out_dir
 
         self.warn_msgs = set()
@@ -170,8 +170,8 @@ class StudentCollate(object):
             try:
                 shutil.copytree(self.proj_dir, collated_dest)
             except:  # there can be issues copying between filesystems
-                if os.name == "posix" or os.name == "mac":
-                    subprocess.check_call(["cp", "-r", self.proj_dir,
+                if os.name == 'posix' or os.name == 'mac':
+                    subprocess.check_call(['cp', '-r', self.proj_dir,
                                            collated_dest])
                 else:
                     raise
@@ -191,12 +191,12 @@ class StudentCollate(object):
         """ Labeled directory name (has Colby ID, identifies any errors). """
         if self.warn_msgs:
             # Sorting needed to maintain determinism with respect to warnings
-            out_prefix = "AA_" + "-".join(sorted(self.warn_msgs)) + "_"
+            out_prefix = 'AA_' + '-'.join(sorted(self.warn_msgs)) + '_'
         else:
-            out_prefix = ""
+            out_prefix = ''
 
         # Check that we haven't previously used a different directory name
-        if hasattr(self, "_old_prefix") and out_prefix != self._old_prefix:
+        if hasattr(self, '_old_prefix') and out_prefix != self._old_prefix:
             log.warning("Previously used a different directory for %s",
                         self.colby_id, )
         self._old_prefix = out_prefix  # Save for checking in case called again
@@ -262,18 +262,18 @@ def make_proj_regex(proj_num):
     numbers = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six",
                7: "seven", 8: "eight", 9: "nine", 10: "ten", 11: "eleven"}
     en_num = numbers.get(proj_num, str(proj_num))
-    regex_string = ".*(lab|proj(ect)?)[-_\s]*(0*%d|%s)" % (proj_num, en_num)
+    regex_string = r'.*(lab|proj(ect)?)[-_\s]*(0*%d|%s)' % (proj_num, en_num)
     return re.compile(regex_string, re.IGNORECASE)
 
 
 def save_writeup(writeup_url, dest_dir, number=False):
     """ Save the writeup to its destination directory.
 
-    :param writeup_url: URL to a writeup ("http://.../display/~colby_id/...")
+    :param writeup_url: URL to a writeup ('http://.../display/~colby_id/...')
     :param dest_dir: Directory to save the PDF to
     :param number: An optional number indicating it's the nth writeup file
     """
-    pdf_name = "writeup%s.pdf" % ("" if not number else number)
+    pdf_name = 'writeup%s.pdf' % ('' if not number else number)
     dest_pdf = os.path.join(dest_dir, pdf_name)
 
     # Create a URL that logs in, and redirects to the desired page
@@ -281,17 +281,17 @@ def save_writeup(writeup_url, dest_dir, number=False):
     # NOTE: Ideally, we should be able to use the cookie that
     # mechanize maintains, but I couldn't get it working
     os_destination = writeup_url[writeup_url.find('/display/'):]
-    params = urllib.urlencode({"os_username": OS_USERNAME,
-                               "os_password": OS_PASSWORD,
-                               "os_destination": os_destination})
+    params = urllib.urlencode({'os_username': OS_USERNAME,
+                               'os_password': OS_PASSWORD,
+                               'os_destination': os_destination})
     redirect_url = 'https://wiki.colby.edu/login.action?%s' % params
 
-    if "wkhtmltopdf" in PDF_PRINTER.lower():
+    if 'wkhtmltopdf' in PDF_PRINTER.lower():
         cmd = [PDF_PRINTER, redirect_url, dest_pdf]
-        subprocess.check_call(cmd + ["--quiet"] if not VERBOSE else cmd)
-    elif "phantomjs" in PDF_PRINTER.lower():
-        subprocess.check_call([PDF_PRINTER, "rasterize.js", redirect_url,
-                               dest_pdf, "Letter"])
+        subprocess.check_call(cmd + ['--quiet'] if not VERBOSE else cmd)
+    elif 'phantomjs' in PDF_PRINTER.lower():
+        subprocess.check_call([PDF_PRINTER, 'rasterize.js', redirect_url,
+                               dest_pdf, 'Letter'])
     else:
         raise ValueError("No valid PDF printer detected in %s.\n"
                          "Supported printers are wkhtmltopdf or PhantomJS\n"
@@ -309,7 +309,7 @@ def collate(proj_num, students_fn):
     """
     if BACKUP_CS_151:
         log.info("Backing up before doing anything")
-        backup_name = "151_backup_%s" % datetime.datetime.now()
+        backup_name = '151_backup_%s' % datetime.datetime.now()
         log.info("Copying %r to %r", CS151_MOUNT_POINT, backup_name)
         shutil.copytree(CS151_MOUNT_POINT, backup_name)
         log.info("Backup completed")
@@ -322,17 +322,17 @@ def collate(proj_num, students_fn):
     coll.collate_projects(students)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import argparse
 
-    parser = argparse.ArgumentParser(description='Collate a project')
+    parser = argparse.ArgumentParser(description="Collate a project")
     parser.add_argument('proj_num', type=int,
-                        help='The number of the CS151 project')
+                        help="The number of the CS151 project")
     parser.add_argument('students_file',
                         help="A text file with a Colby ID per line")
     parser.add_argument('-v', '--verbose', action="store_true",
                         help="Print extra information")
-    parser.add_argument('--backup', action="store_true",
+    parser.add_argument('--backup', action='store_true',
                         help="Backup %s before collation" % CS151_MOUNT_POINT)
 
     args = parser.parse_args()

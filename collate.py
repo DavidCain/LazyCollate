@@ -121,11 +121,7 @@ class Collate(object):
 
     def collate_projects(self, students):
         for colby_id in students:
-            try:
-                writeup_urls = self.writeups_dict[colby_id]
-            except KeyError:
-                writeup_urls = []
-
+            writeup_urls = self.writeups_dict.get(colby_id, [])
             stu = StudentCollate(colby_id, self.project, writeup_urls,
                                  self.collated_proj_dir)
             stu.collect()
@@ -265,10 +261,7 @@ def make_proj_regex(proj_num):
     """ Return a regex that permissively matches possible project dirnames. """
     numbers = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six",
                7: "seven", 8: "eight", 9: "nine", 10: "ten", 11: "eleven"}
-    try:
-        en_num = numbers[proj_num]
-    except KeyError:
-        en_num = proj_num
+    en_num = numbers.get(proj_num, str(proj_num))
     regex_string = ".*(lab|proj(ect)?)[-_\s]*(0*%d|%s)" % (proj_num, en_num)
     return re.compile(regex_string, re.IGNORECASE)
 

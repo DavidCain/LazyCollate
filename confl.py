@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # David Cain
 # 2013-05-12
 

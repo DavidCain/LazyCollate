@@ -316,7 +316,7 @@ def collate(proj_num, students_fn):
 
     coll = Collate(proj_num)
     with open(students_fn) as students_list:
-        students = [line.strip() for line in students_list]
+        students = [line.strip() for line in students_list if line.strip()]
 
     coll.save_all_images(students)
     coll.collate_projects(students)
